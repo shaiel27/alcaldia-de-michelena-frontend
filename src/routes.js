@@ -1,6 +1,7 @@
+import { element } from 'prop-types'
 import React from 'react'
 
-const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
+const DashboardMunicipal = React.lazy(() => import('./views/dashboard/Dashboard'))
 const Colors = React.lazy(() => import('./views/theme/colors/Colors'))
 const Typography = React.lazy(() => import('./views/theme/typography/Typography'))
 
@@ -51,9 +52,12 @@ const Toasts = React.lazy(() => import('./views/notifications/toasts/Toasts'))
 
 const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
+
+const ConstructionRequestForm = React.lazy(() => import('./views/pages/solicitud_obra/Solicitud_obra'))
+
 const routes = [
   { path: '/', exact: true, name: 'Home' },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
+  { path: '/DashboardMunicipal', name: 'Dashboard', element:DashboardMunicipal },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },
   { path: '/theme/typography', name: 'Typography', element: Typography },
@@ -97,6 +101,9 @@ const routes = [
   { path: '/notifications/modals', name: 'Modals', element: Modals },
   { path: '/notifications/toasts', name: 'Toasts', element: Toasts },
   { path: '/widgets', name: 'Widgets', element: Widgets },
+
+
+  { path: '/solicitud_obra', name: 'ConstructionRequestForm', element: ConstructionRequestForm },
 ]
 
 export default routes
