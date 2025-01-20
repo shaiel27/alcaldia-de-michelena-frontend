@@ -54,6 +54,8 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 
 const ConstructionRequestForm = React.lazy(() => import('./views/pages/solicitud_obra/Solicitud_obra'))
+const ConstanciasCatastrales = React.lazy (()=> import('./views/pages/Cadastre_request/CadastreRequest'))
+const RegistroTerrenos = React.lazy(() => import('./views/pages/Property_Registry/PropertyRegistry'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home' },
@@ -104,6 +106,8 @@ const routes = [
 
 
   { path: '/solicitud_obra', name: 'ConstructionRequestForm', element: ConstructionRequestForm },
+  { path: '/solicitud_catastro', name: 'ConstanciasCatastrales', element:ConstanciasCatastrales},
+  { path: '/registro_terreno', name: 'RegistroTerrenos', element:RegistroTerrenos},
 ]
 
 export default routes
