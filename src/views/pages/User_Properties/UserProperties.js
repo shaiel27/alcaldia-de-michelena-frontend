@@ -15,18 +15,26 @@ import {
 } from "@coreui/react"
 import CIcon from "@coreui/icons-react"
 import { cilHouse, cilLayers, cilSearch } from "@coreui/icons"
+import { helpFetch } from "../../../api/helpfetch"
 
 const VisualizacionPropiedades = () => {
   const [filtro, setFiltro] = useState("")
   const [tipoPropiedad, setTipoPropiedad] = useState("todos")
+  const [propiedades, setPropiedades] = useState([])
+  const api = helpFetch()
 
-  // Datos de ejemplo
-  const propiedades = [
-    { id: 1, tipo: "terreno", nombre: "Terreno A", direccion: "Calle 123, Ciudad", area: 1000, unidades: 2 },
-    { id: 2, tipo: "vivienda", nombre: "Casa 1", direccion: "Avenida 456, Ciudad", habitaciones: 3, banos: 2 },
-    { id: 3, tipo: "terreno", nombre: "Terreno B", direccion: "Carrera 789, Ciudad", area: 1500, unidades: 0 },
-    { id: 4, tipo: "vivienda", nombre: "Apartamento 1", direccion: "Calle 101, Ciudad", habitaciones: 2, banos: 1 },
-  ]
+  useEffect(() => {
+    const fetchPropiedades = async () => {
+      try {
+        const data = await api.get("propiedades")
+        setPropiedades(data || [])
+      } catch (error) {
+        console.error("Error fetching properties:", error)
+      }
+    }
+
+    fetchPropiedades()
+  }, [])
 
   const propiedadesFiltradas = propiedades.filter(
     (propiedad) =>

@@ -1,0 +1,28 @@
+{
+    "solicitudes": [
+      {
+        "id": 1,
+        "cedula": "V-1234567",
+        "id_terreno": 1,
+        "fecha": "2023-06-20",
+        "descripcion": "Construcción de vivienda unifamiliar",
+        "estatus": "En progreso",
+        "observacion": "Pendiente aprobación de planos",
+        "ubicacion": "Calle 1, Terreno 1",
+        "tiempo_obra": "6 meses",
+        "monto": 50000
+      },
+      {
+        "id": 2,
+        "cedula": "V-2345678",
+        "id_terreno": 2,
+        "fecha": "2023-06-22",
+        "descripcion": "Ampliación de local comercial",
+        "estatus": "Pendiente",
+        "observacion": "En revisión por el departamento de obras",
+        "ubicacion": "Avenida 2, Terreno 2",
+        "tiempo_obra": "3 meses",
+        "monto": 30000
+      }
+    ]
+  }

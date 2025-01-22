@@ -8,6 +8,8 @@ const RegistroTerrenos = React.lazy(() => import("./views/pages/Property_Registr
 const VisualizacionPropiedades = React.lazy(() => import("./views/pages/User_Properties/UserProperties"));
 const SellOrTransferProperty = React.lazy(() => import('./views/pages/UserTramites/UserTramitesProperties'))
 const WaterComplaintForm = React.lazy(() => import('./views/pages/waterProblem/waterproblemForm'))
+const Login = React.lazy(() => import('./views/pages/login/Login'))
+const Register = React.lazy(() => import('./views/pages/register/Register'))
 
 const routes = [
   { path: "/", exact: true, name: "Home" },
@@ -18,6 +20,8 @@ const routes = [
   { path: "/propiedades_usuario", name: "VisualizacionPropiedades", element: VisualizacionPropiedades },
   { path: "/property_transaction", name: "SellOrTransferProperty", element: SellOrTransferProperty },
   { path: "/WaterComplaintForm", name: "WaterComplaintForm", element: WaterComplaintForm },
+  { path: "/Login", name: "Login", element: Login },
+  { path: "/Register", name: "Register", element: Register },
 ];
 
 export default routes;

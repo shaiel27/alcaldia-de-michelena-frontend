@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   CButton,
   CCard,
@@ -15,82 +15,71 @@ import {
   CModalHeader,
   CModalTitle,
   CRow,
-  CFormSelect,
+  CAlert,
 } from "@coreui/react"
+import { helpFetch } from "../api/helpfetch"
 
-const RegistroTerrenos = () => {
+const PropertyRegistry = () => {
+  const api = helpFetch()
   const [terrenoData, setTerrenoData] = useState({
-    id_terreno: "",
-    direccion: "",
-    medidas_norte: "",
-    medidas_sur: "",
-    medidas_este: "",
-    medidas_oeste: "",
-    colindancias_norte: "",
-    colindancias_sur: "",
-    colindancias_este: "",
-    colindancias_oeste: "",
-    foto: null,
+    ID_Terreno: "",
+    Medidas_Norte: "",
+    Medidas_Sur: "",
+    Medidas_Este: "",
+    Medidas_Oeste: "",
+    Colindancias_Norte: "",
+    Colindancias_Sur: "",
+    Colindancias_Este: "",
+    Colindancias_Oeste: "",
   })
   const [lotes, setLotes] = useState([])
   const [modalLoteVisible, setModalLoteVisible] = useState(false)
   const [modalViviendaVisible, setModalViviendaVisible] = useState(false)
-  const [modalPropietarioVisible, setModalPropietarioVisible] = useState(false)
   const [loteActual, setLoteActual] = useState(null)
   const [loteData, setLoteData] = useState({
-    id_lote: "",
-    medidas_lote_norte: "",
-    medidas_lote_sur: "",
-    medidas_lote_este: "",
-    medidas_lote_oeste: "",
-    colindancia_lote_norte: "",
-    colindancia_lote_sur: "",
-    colindancia_lote_este: "",
-    colindancia_lote_oeste: "",
-    fecha_registro: "",
-    nmro_registro: "",
-    viviendas: [],
+    ID_Lote: "",
+    Medidas_Lote_Norte: "",
+    Medidas_Lote_Sur: "",
+    Medidas_Lote_Este: "",
+    Medidas_Lote_Oeste: "",
+    Colindancia_Lote_Norte: "",
+    Colindancia_Lote_Sur: "",
+    Colindancia_Lote_Este: "",
+    Colindancia_Lote_Oeste: "",
+    Fecha_Registro: "",
+    Nmro_Registro: "",
   })
   const [viviendaData, setViviendaData] = useState({
-    id_vivienda: "",
-    color: "",
-    tipo_techo: "",
-    area_construccion: "",
-    cant_habitaciones: "",
-    cant_cocinas: "",
-    cant_baños: "",
-    cant_area_servicios: "",
-    cant_salaEstar: "",
-    cant_comedor: "",
-    cant_garage: "",
-    cant_oficina: "",
-    descripcion_piso: "",
-    descripcion_paredes: "",
-    descripcion_techo: "",
-    descripcion_estructura: "",
-    descripcion_tuberia: "",
-    descripcion_puertas: "",
-    descripcion_ventanas: "",
-    descripcion_instalacion_electrica: "",
-    descripcion_instalacion_sanitaria: "",
-    descripcion_acabados: "",
-    observaciones_adicionales: "",
+    ID_Vivienda: "",
+    Color: "",
+    Tipo_Techo: "",
+    Area_Construccion: "",
+    Cant_Habitaciones: "",
+    Cant_Cocinas: "",
+    Cant_Baños: "",
+    Cant_Area_Servicios: "",
+    Cant_Sala_Estar: "",
+    Cant_Comedor: "",
+    Cant_Garage: "",
+    Cant_Oficina: "",
+    Descripcion_Piso: "",
+    Descripcion_Paredes: "",
+    Descripcion_Techo: "",
+    Descripcion_Estructura: "",
+    Descripcion_Tuberia: "",
+    Descripcion_Puertas: "",
+    Descripcion_Ventanas: "",
+    Descripcion_Instalacion_Electrica: "",
+    Descripcion_Instalacion_Sanitaria: "",
+    Descripcion_Acabados: "",
+    Observaciones_Adicionales: "",
   })
-  const [propietarios, setPropietarios] = useState([])
-  const [propietarioData, setPropietarioData] = useState({
-    nombre: "",
-    apellido: "",
-    identificacion: "",
-    porcentaje_propiedad: "",
-  })
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
   const handleTerrenoChange = (e) => {
     const { name, value } = e.target
     setTerrenoData({ ...terrenoData, [name]: value })
-  }
-
-  const handleFotoChange = (e) => {
-    setTerrenoData({ ...terrenoData, foto: e.target.files[0] })
   }
 
   const handleLoteChange = (e) => {
@@ -103,26 +92,20 @@ const RegistroTerrenos = () => {
     setViviendaData({ ...viviendaData, [name]: value })
   }
 
-  const handlePropietarioChange = (e) => {
-    const { name, value } = e.target
-    setPropietarioData({ ...propietarioData, [name]: value })
-  }
-
   const addLote = () => {
     setLotes([...lotes, { ...loteData, viviendas: [] }])
     setLoteData({
-      id_lote: "",
-      medidas_lote_norte: "",
-      medidas_lote_sur: "",
-      medidas_lote_este: "",
-      medidas_lote_oeste: "",
-      colindancia_lote_norte: "",
-      colindancia_lote_sur: "",
-      colindancia_lote_este: "",
-      colindancia_lote_oeste: "",
-      fecha_registro: "",
-      nmro_registro: "",
-      viviendas: [],
+      ID_Lote: "",
+      Medidas_Lote_Norte: "",
+      Medidas_Lote_Sur: "",
+      Medidas_Lote_Este: "",
+      Medidas_Lote_Oeste: "",
+      Colindancia_Lote_Norte: "",
+      Colindancia_Lote_Sur: "",
+      Colindancia_Lote_Este: "",
+      Colindancia_Lote_Oeste: "",
+      Fecha_Registro: "",
+      Nmro_Registro: "",
     })
     setModalLoteVisible(false)
   }
@@ -139,48 +122,64 @@ const RegistroTerrenos = () => {
     })
     setLotes(lotesActualizados)
     setViviendaData({
-      id_vivienda: "",
-      color: "",
-      tipo_techo: "",
-      area_construccion: "",
-      cant_habitaciones: "",
-      cant_cocinas: "",
-      cant_baños: "",
-      cant_area_servicios: "",
-      cant_salaEstar: "",
-      cant_comedor: "",
-      cant_garage: "",
-      cant_oficina: "",
-      descripcion_piso: "",
-      descripcion_paredes: "",
-      descripcion_techo: "",
-      descripcion_estructura: "",
-      descripcion_tuberia: "",
-      descripcion_puertas: "",
-      descripcion_ventanas: "",
-      descripcion_instalacion_electrica: "",
-      descripcion_instalacion_sanitaria: "",
-      descripcion_acabados: "",
-      observaciones_adicionales: "",
+      ID_Vivienda: "",
+      Color: "",
+      Tipo_Techo: "",
+      Area_Construccion: "",
+      Cant_Habitaciones: "",
+      Cant_Cocinas: "",
+      Cant_Baños: "",
+      Cant_Area_Servicios: "",
+      Cant_Sala_Estar: "",
+      Cant_Comedor: "",
+      Cant_Garage: "",
+      Cant_Oficina: "",
+      Descripcion_Piso: "",
+      Descripcion_Paredes: "",
+      Descripcion_Techo: "",
+      Descripcion_Estructura: "",
+      Descripcion_Tuberia: "",
+      Descripcion_Puertas: "",
+      Descripcion_Ventanas: "",
+      Descripcion_Instalacion_Electrica: "",
+      Descripcion_Instalacion_Sanitaria: "",
+      Descripcion_Acabados: "",
+      Observaciones_Adicionales: "",
     })
     setModalViviendaVisible(false)
   }
 
-  const addPropietario = () => {
-    setPropietarios([...propietarios, propietarioData])
-    setPropietarioData({
-      nombre: "",
-      apellido: "",
-      identificacion: "",
-      porcentaje_propiedad: "",
-    })
-    setModalPropietarioVisible(false)
-  }
+  const handleSubmit = async () => {
+    try {
+      const newTerreno = {
+        ...terrenoData,
+        Lote: lotes.map((lote) => ({
+          ...lote,
+          Vivienda: lote.viviendas,
+        })),
+      }
 
-  const handleSubmit = () => {
-    console.log({ terrenoData, lotes, propietarios })
-    alert("Terreno registrado exitosamente!")
-    // Aquí iría la lógica para enviar los datos al backend
+      await api.post("Terreno", { body: newTerreno })
+      setSuccess("Terreno registrado exitosamente!")
+      setError("")
+      // Reset form
+      setTerrenoData({
+        ID_Terreno: "",
+        Medidas_Norte: "",
+        Medidas_Sur: "",
+        Medidas_Este: "",
+        Medidas_Oeste: "",
+        Colindancias_Norte: "",
+        Colindancias_Sur: "",
+        Colindancias_Este: "",
+        Colindancias_Oeste: "",
+      })
+      setLotes([])
+    } catch (error) {
+      console.error("Error registering terreno:", error)
+      setError("Error al registrar el terreno")
+      setSuccess("")
+    }
   }
 
   return (
@@ -192,23 +191,15 @@ const RegistroTerrenos = () => {
           </CCardHeader>
           <CCardBody>
             <CForm>
+              {error && <CAlert color="danger">{error}</CAlert>}
+              {success && <CAlert color="success">{success}</CAlert>}
               <CRow className="mb-3">
                 <CCol md={6}>
-                  <CFormLabel htmlFor="id_terreno">ID del Terreno</CFormLabel>
+                  <CFormLabel htmlFor="ID_Terreno">ID del Terreno</CFormLabel>
                   <CFormInput
-                    id="id_terreno"
-                    name="id_terreno"
-                    value={terrenoData.id_terreno}
-                    onChange={handleTerrenoChange}
-                    required
-                  />
-                </CCol>
-                <CCol md={6}>
-                  <CFormLabel htmlFor="direccion">Dirección del Terreno</CFormLabel>
-                  <CFormInput
-                    id="direccion"
-                    name="direccion"
-                    value={terrenoData.direccion}
+                    id="ID_Terreno"
+                    name="ID_Terreno"
+                    value={terrenoData.ID_Terreno}
                     onChange={handleTerrenoChange}
                     required
                   />
@@ -216,91 +207,82 @@ const RegistroTerrenos = () => {
               </CRow>
               <CRow className="mb-3">
                 <CCol md={3}>
-                  <CFormLabel htmlFor="medidas_norte">Medidas Norte</CFormLabel>
+                  <CFormLabel htmlFor="Medidas_Norte">Medidas Norte</CFormLabel>
                   <CFormInput
-                    id="medidas_norte"
-                    name="medidas_norte"
-                    value={terrenoData.medidas_norte}
+                    id="Medidas_Norte"
+                    name="Medidas_Norte"
+                    value={terrenoData.Medidas_Norte}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="medidas_sur">Medidas Sur</CFormLabel>
+                  <CFormLabel htmlFor="Medidas_Sur">Medidas Sur</CFormLabel>
                   <CFormInput
-                    id="medidas_sur"
-                    name="medidas_sur"
-                    value={terrenoData.medidas_sur}
+                    id="Medidas_Sur"
+                    name="Medidas_Sur"
+                    value={terrenoData.Medidas_Sur}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="medidas_este">Medidas Este</CFormLabel>
+                  <CFormLabel htmlFor="Medidas_Este">Medidas Este</CFormLabel>
                   <CFormInput
-                    id="medidas_este"
-                    name="medidas_este"
-                    value={terrenoData.medidas_este}
+                    id="Medidas_Este"
+                    name="Medidas_Este"
+                    value={terrenoData.Medidas_Este}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="medidas_oeste">Medidas Oeste</CFormLabel>
+                  <CFormLabel htmlFor="Medidas_Oeste">Medidas Oeste</CFormLabel>
                   <CFormInput
-                    id="medidas_oeste"
-                    name="medidas_oeste"
-                    value={terrenoData.medidas_oeste}
+                    id="Medidas_Oeste"
+                    name="Medidas_Oeste"
+                    value={terrenoData.Medidas_Oeste}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
               </CRow>
               <CRow className="mb-3">
                 <CCol md={3}>
-                  <CFormLabel htmlFor="colindancias_norte">Colindancias Norte</CFormLabel>
+                  <CFormLabel htmlFor="Colindancias_Norte">Colindancias Norte</CFormLabel>
                   <CFormInput
-                    id="colindancias_norte"
-                    name="colindancias_norte"
-                    value={terrenoData.colindancias_norte}
+                    id="Colindancias_Norte"
+                    name="Colindancias_Norte"
+                    value={terrenoData.Colindancias_Norte}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="colindancias_sur">Colindancias Sur</CFormLabel>
+                  <CFormLabel htmlFor="Colindancias_Sur">Colindancias Sur</CFormLabel>
                   <CFormInput
-                    id="colindancias_sur"
-                    name="colindancias_sur"
-                    value={terrenoData.colindancias_sur}
+                    id="Colindancias_Sur"
+                    name="Colindancias_Sur"
+                    value={terrenoData.Colindancias_Sur}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="colindancias_este">Colindancias Este</CFormLabel>
+                  <CFormLabel htmlFor="Colindancias_Este">Colindancias Este</CFormLabel>
                   <CFormInput
-                    id="colindancias_este"
-                    name="colindancias_este"
-                    value={terrenoData.colindancias_este}
+                    id="Colindancias_Este"
+                    name="Colindancias_Este"
+                    value={terrenoData.Colindancias_Este}
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
                 <CCol md={3}>
-                  <CFormLabel htmlFor="colindancias_oeste">Colindancias Oeste</CFormLabel>
+                  <CFormLabel htmlFor="Colindancias_Oeste">Colindancias Oeste</CFormLabel>
                   <CFormInput
-                    id="colindancias_oeste"
-                    name="colindancias_oeste"
-                    value={terrenoData.colindancias_oeste}
+                    id="Colindancias_Oeste"
+                    name="Colindancias_Oeste"
+                    value={terrenoData.Colindancias_Oeste}
                     onChange={handleTerrenoChange}
                   />
-                </CCol>
-              </CRow>
-              <CRow className="mb-3">
-                <CCol md={6}>
-                  <CFormLabel htmlFor="foto">Foto del Terreno</CFormLabel>
-                  <CFormInput type="file" id="foto" name="foto" onChange={handleFotoChange} accept="image/*" />
                 </CCol>
               </CRow>
               <CButton color="primary" onClick={() => setModalLoteVisible(true)} className="me-2">
                 Agregar Lote
-              </CButton>
-              <CButton color="info" onClick={() => setModalPropietarioVisible(true)}>
-                Agregar Propietario
               </CButton>
             </CForm>
           </CCardBody>
@@ -316,107 +298,107 @@ const RegistroTerrenos = () => {
           <CForm>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="id_lote">ID del Lote</CFormLabel>
-                <CFormInput id="id_lote" name="id_lote" value={loteData.id_lote} onChange={handleLoteChange} />
+                <CFormLabel htmlFor="ID_Lote">ID del Lote</CFormLabel>
+                <CFormInput id="ID_Lote" name="ID_Lote" value={loteData.ID_Lote} onChange={handleLoteChange} />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="fecha_registro">Fecha de Registro</CFormLabel>
+                <CFormLabel htmlFor="Fecha_Registro">Fecha de Registro</CFormLabel>
                 <CFormInput
-                  id="fecha_registro"
-                  name="fecha_registro"
+                  id="Fecha_Registro"
+                  name="Fecha_Registro"
                   type="date"
-                  value={loteData.fecha_registro}
+                  value={loteData.Fecha_Registro}
                   onChange={handleLoteChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="medidas_lote_norte">Medidas Norte</CFormLabel>
+                <CFormLabel htmlFor="Medidas_Lote_Norte">Medidas Norte</CFormLabel>
                 <CFormInput
-                  id="medidas_lote_norte"
-                  name="medidas_lote_norte"
-                  value={loteData.medidas_lote_norte}
+                  id="Medidas_Lote_Norte"
+                  name="Medidas_Lote_Norte"
+                  value={loteData.Medidas_Lote_Norte}
                   onChange={handleLoteChange}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="medidas_lote_sur">Medidas Sur</CFormLabel>
+                <CFormLabel htmlFor="Medidas_Lote_Sur">Medidas Sur</CFormLabel>
                 <CFormInput
-                  id="medidas_lote_sur"
-                  name="medidas_lote_sur"
-                  value={loteData.medidas_lote_sur}
-                  onChange={handleLoteChange}
-                />
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel htmlFor="medidas_lote_este">Medidas Este</CFormLabel>
-                <CFormInput
-                  id="medidas_lote_este"
-                  name="medidas_lote_este"
-                  value={loteData.medidas_lote_este}
-                  onChange={handleLoteChange}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel htmlFor="medidas_lote_oeste">Medidas Oeste</CFormLabel>
-                <CFormInput
-                  id="medidas_lote_oeste"
-                  name="medidas_lote_oeste"
-                  value={loteData.medidas_lote_oeste}
+                  id="Medidas_Lote_Sur"
+                  name="Medidas_Lote_Sur"
+                  value={loteData.Medidas_Lote_Sur}
                   onChange={handleLoteChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="colindancia_lote_norte">Colindancia Norte</CFormLabel>
+                <CFormLabel htmlFor="Medidas_Lote_Este">Medidas Este</CFormLabel>
                 <CFormInput
-                  id="colindancia_lote_norte"
-                  name="colindancia_lote_norte"
-                  value={loteData.colindancia_lote_norte}
+                  id="Medidas_Lote_Este"
+                  name="Medidas_Lote_Este"
+                  value={loteData.Medidas_Lote_Este}
                   onChange={handleLoteChange}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="colindancia_lote_sur">Colindancia Sur</CFormLabel>
+                <CFormLabel htmlFor="Medidas_Lote_Oeste">Medidas Oeste</CFormLabel>
                 <CFormInput
-                  id="colindancia_lote_sur"
-                  name="colindancia_lote_sur"
-                  value={loteData.colindancia_lote_sur}
-                  onChange={handleLoteChange}
-                />
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel htmlFor="colindancia_lote_este">Colindancia Este</CFormLabel>
-                <CFormInput
-                  id="colindancia_lote_este"
-                  name="colindancia_lote_este"
-                  value={loteData.colindancia_lote_este}
-                  onChange={handleLoteChange}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel htmlFor="colindancia_lote_oeste">Colindancia Oeste</CFormLabel>
-                <CFormInput
-                  id="colindancia_lote_oeste"
-                  name="colindancia_lote_oeste"
-                  value={loteData.colindancia_lote_oeste}
+                  id="Medidas_Lote_Oeste"
+                  name="Medidas_Lote_Oeste"
+                  value={loteData.Medidas_Lote_Oeste}
                   onChange={handleLoteChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="nmro_registro">Número de Registro</CFormLabel>
+                <CFormLabel htmlFor="Colindancia_Lote_Norte">Colindancia Norte</CFormLabel>
                 <CFormInput
-                  id="nmro_registro"
-                  name="nmro_registro"
-                  value={loteData.nmro_registro}
+                  id="Colindancia_Lote_Norte"
+                  name="Colindancia_Lote_Norte"
+                  value={loteData.Colindancia_Lote_Norte}
+                  onChange={handleLoteChange}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Colindancia_Lote_Sur">Colindancia Sur</CFormLabel>
+                <CFormInput
+                  id="Colindancia_Lote_Sur"
+                  name="Colindancia_Lote_Sur"
+                  value={loteData.Colindancia_Lote_Sur}
+                  onChange={handleLoteChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Colindancia_Lote_Este">Colindancia Este</CFormLabel>
+                <CFormInput
+                  id="Colindancia_Lote_Este"
+                  name="Colindancia_Lote_Este"
+                  value={loteData.Colindancia_Lote_Este}
+                  onChange={handleLoteChange}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Colindancia_Lote_Oeste">Colindancia Oeste</CFormLabel>
+                <CFormInput
+                  id="Colindancia_Lote_Oeste"
+                  name="Colindancia_Lote_Oeste"
+                  value={loteData.Colindancia_Lote_Oeste}
+                  onChange={handleLoteChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Nmro_Registro">Número de Registro</CFormLabel>
+                <CFormInput
+                  id="Nmro_Registro"
+                  name="Nmro_Registro"
+                  value={loteData.Nmro_Registro}
                   onChange={handleLoteChange}
                 />
               </CCol>
@@ -442,162 +424,140 @@ const RegistroTerrenos = () => {
           <CForm>
             <CRow className="mb-3">
               <CCol md={4}>
-                <CFormLabel htmlFor="id_vivienda">ID de la Vivienda</CFormLabel>
+                <CFormLabel htmlFor="ID_Vivienda">ID de la Vivienda</CFormLabel>
                 <CFormInput
-                  id="id_vivienda"
-                  name="id_vivienda"
-                  value={viviendaData.id_vivienda}
+                  id="ID_Vivienda"
+                  name="ID_Vivienda"
+                  value={viviendaData.ID_Vivienda}
                   onChange={handleViviendaChange}
                 />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="color">Color</CFormLabel>
-                <CFormInput id="color" name="color" value={viviendaData.color} onChange={handleViviendaChange} />
+                <CFormLabel htmlFor="Color">Color</CFormLabel>
+                <CFormInput id="Color" name="Color" value={viviendaData.Color} onChange={handleViviendaChange} />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="tipo_techo">Tipo de Techo</CFormLabel>
+                <CFormLabel htmlFor="Tipo_Techo">Tipo de Techo</CFormLabel>
                 <CFormInput
-                  id="tipo_techo"
-                  name="tipo_techo"
-                  value={viviendaData.tipo_techo}
-                  onChange={handleViviendaChange}
-                />
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={4}>
-                <CFormLabel htmlFor="area_construccion">Área de Construcción</CFormLabel>
-                <CFormInput
-                  id="area_construccion"
-                  name="area_construccion"
-                  value={viviendaData.area_construccion}
-                  onChange={handleViviendaChange}
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormLabel htmlFor="cant_habitaciones">Habitaciones</CFormLabel>
-                <CFormInput
-                  id="cant_habitaciones"
-                  name="cant_habitaciones"
-                  type="number"
-                  value={viviendaData.cant_habitaciones}
-                  onChange={handleViviendaChange}
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormLabel htmlFor="cant_cocinas">Cocinas</CFormLabel>
-                <CFormInput
-                  id="cant_cocinas"
-                  name="cant_cocinas"
-                  type="number"
-                  value={viviendaData.cant_cocinas}
+                  id="Tipo_Techo"
+                  name="Tipo_Techo"
+                  value={viviendaData.Tipo_Techo}
                   onChange={handleViviendaChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_baños">Baños</CFormLabel>
+                <CFormLabel htmlFor="Area_Construccion">Área de Construcción</CFormLabel>
                 <CFormInput
-                  id="cant_baños"
-                  name="cant_baños"
-                  type="number"
-                  value={viviendaData.cant_baños}
+                  id="Area_Construccion"
+                  name="Area_Construccion"
+                  value={viviendaData.Area_Construccion}
                   onChange={handleViviendaChange}
                 />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_area_servicios">Áreas de Servicio</CFormLabel>
+                <CFormLabel htmlFor="Cant_Habitaciones">Habitaciones</CFormLabel>
                 <CFormInput
-                  id="cant_area_servicios"
-                  name="cant_area_servicios"
+                  id="Cant_Habitaciones"
+                  name="Cant_Habitaciones"
                   type="number"
-                  value={viviendaData.cant_area_servicios}
+                  value={viviendaData.Cant_Habitaciones}
                   onChange={handleViviendaChange}
                 />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_salaEstar">Salas de Estar</CFormLabel>
+                <CFormLabel htmlFor="Cant_Cocinas">Cocinas</CFormLabel>
                 <CFormInput
-                  id="cant_salaEstar"
-                  name="cant_salaEstar"
+                  id="Cant_Cocinas"
+                  name="Cant_Cocinas"
                   type="number"
-                  value={viviendaData.cant_salaEstar}
+                  value={viviendaData.Cant_Cocinas}
                   onChange={handleViviendaChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_comedor">Comedores</CFormLabel>
+                <CFormLabel htmlFor="Cant_Baños">Baños</CFormLabel>
                 <CFormInput
-                  id="cant_comedor"
-                  name="cant_comedor"
+                  id="Cant_Baños"
+                  name="Cant_Baños"
                   type="number"
-                  value={viviendaData.cant_comedor}
+                  value={viviendaData.Cant_Baños}
                   onChange={handleViviendaChange}
                 />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_garage">Garajes</CFormLabel>
+                <CFormLabel htmlFor="Cant_Area_Servicios">Áreas de Servicio</CFormLabel>
                 <CFormInput
-                  id="cant_garage"
-                  name="cant_garage"
+                  id="Cant_Area_Servicios"
+                  name="Cant_Area_Servicios"
                   type="number"
-                  value={viviendaData.cant_garage}
+                  value={viviendaData.Cant_Area_Servicios}
                   onChange={handleViviendaChange}
                 />
               </CCol>
               <CCol md={4}>
-                <CFormLabel htmlFor="cant_oficina">Oficinas</CFormLabel>
+                <CFormLabel htmlFor="Cant_Sala_Estar">Salas de Estar</CFormLabel>
                 <CFormInput
-                  id="cant_oficina"
-                  name="cant_oficina"
+                  id="Cant_Sala_Estar"
+                  name="Cant_Sala_Estar"
                   type="number"
-                  value={viviendaData.cant_oficina}
+                  value={viviendaData.Cant_Sala_Estar}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Comedor">Comedores</CFormLabel>
+                <CFormInput
+                  id="Cant_Comedor"
+                  name="Cant_Comedor"
+                  type="number"
+                  value={viviendaData.Cant_Comedor}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Garage">Garajes</CFormLabel>
+                <CFormInput
+                  id="Cant_Garage"
+                  name="Cant_Garage"
+                  type="number"
+                  value={viviendaData.Cant_Garage}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Oficina">Oficinas</CFormLabel>
+                <CFormInput
+                  id="Cant_Oficina"
+                  name="Cant_Oficina"
+                  type="number"
+                  value={viviendaData.Cant_Oficina}
                   onChange={handleViviendaChange}
                 />
               </CCol>
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_piso">Descripción del Piso</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Piso">Descripción del Piso</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_piso"
-                  name="descripcion_piso"
-                  value={viviendaData.descripcion_piso}
+                  id="Descripcion_Piso"
+                  name="Descripcion_Piso"
+                  value={viviendaData.Descripcion_Piso}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_paredes">Descripción de las Paredes</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Paredes">Descripción de las Paredes</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_paredes"
-                  name="descripcion_paredes"
-                  value={viviendaData.descripcion_paredes}
-                  onChange={handleViviendaChange}
-                  rows={3}
-                />
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_techo">Descripción del Techo</CFormLabel>
-                <CFormTextarea
-                  id="descripcion_techo"
-                  name="descripcion_techo"
-                  value={viviendaData.descripcion_techo}
-                  onChange={handleViviendaChange}
-                  rows={3}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_estructura">Descripción de la Estructura</CFormLabel>
-                <CFormTextarea
-                  id="descripcion_estructura"
-                  name="descripcion_estructura"
-                  value={viviendaData.descripcion_estructura}
+                  id="Descripcion_Paredes"
+                  name="Descripcion_Paredes"
+                  value={viviendaData.Descripcion_Paredes}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
@@ -605,21 +565,21 @@ const RegistroTerrenos = () => {
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_tuberia">Descripción de la Tubería</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Techo">Descripción del Techo</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_tuberia"
-                  name="descripcion_tuberia"
-                  value={viviendaData.descripcion_tuberia}
+                  id="Descripcion_Techo"
+                  name="Descripcion_Techo"
+                  value={viviendaData.Descripcion_Techo}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_puertas">Descripción de las Puertas</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Estructura">Descripción de la Estructura</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_puertas"
-                  name="descripcion_puertas"
-                  value={viviendaData.descripcion_puertas}
+                  id="Descripcion_Estructura"
+                  name="Descripcion_Estructura"
+                  value={viviendaData.Descripcion_Estructura}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
@@ -627,23 +587,45 @@ const RegistroTerrenos = () => {
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_ventanas">Descripción de las Ventanas</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Tuberia">Descripción de la Tubería</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_ventanas"
-                  name="descripcion_ventanas"
-                  value={viviendaData.descripcion_ventanas}
+                  id="Descripcion_Tuberia"
+                  name="Descripcion_Tuberia"
+                  value={viviendaData.Descripcion_Tuberia}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_instalacion_electrica">
+                <CFormLabel htmlFor="Descripcion_Puertas">Descripción de las Puertas</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Puertas"
+                  name="Descripcion_Puertas"
+                  value={viviendaData.Descripcion_Puertas}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Ventanas">Descripción de las Ventanas</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Ventanas"
+                  name="Descripcion_Ventanas"
+                  value={viviendaData.Descripcion_Ventanas}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Instalacion_Electrica">
                   Descripción de la Instalación Eléctrica
                 </CFormLabel>
                 <CFormTextarea
-                  id="descripcion_instalacion_electrica"
-                  name="descripcion_instalacion_electrica"
-                  value={viviendaData.descripcion_instalacion_electrica}
+                  id="Descripcion_Instalacion_Electrica"
+                  name="Descripcion_Instalacion_Electrica"
+                  value={viviendaData.Descripcion_Instalacion_Electrica}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
@@ -651,23 +633,23 @@ const RegistroTerrenos = () => {
             </CRow>
             <CRow className="mb-3">
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_instalacion_sanitaria">
+                <CFormLabel htmlFor="Descripcion_Instalacion_Sanitaria">
                   Descripción de la Instalación Sanitaria
                 </CFormLabel>
                 <CFormTextarea
-                  id="descripcion_instalacion_sanitaria"
-                  name="descripcion_instalacion_sanitaria"
-                  value={viviendaData.descripcion_instalacion_sanitaria}
+                  id="Descripcion_Instalacion_Sanitaria"
+                  name="Descripcion_Instalacion_Sanitaria"
+                  value={viviendaData.Descripcion_Instalacion_Sanitaria}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
               </CCol>
               <CCol md={6}>
-                <CFormLabel htmlFor="descripcion_acabados">Descripción de los Acabados</CFormLabel>
+                <CFormLabel htmlFor="Descripcion_Acabados">Descripción de los Acabados</CFormLabel>
                 <CFormTextarea
-                  id="descripcion_acabados"
-                  name="descripcion_acabados"
-                  value={viviendaData.descripcion_acabados}
+                  id="Descripcion_Acabados"
+                  name="Descripcion_Acabados"
+                  value={viviendaData.Descripcion_Acabados}
                   onChange={handleViviendaChange}
                   rows={3}
                 />
@@ -675,11 +657,11 @@ const RegistroTerrenos = () => {
             </CRow>
             <CRow className="mb-3">
               <CCol md={12}>
-                <CFormLabel htmlFor="observaciones_adicionales">Observaciones Adicionales</CFormLabel>
+                <CFormLabel htmlFor="Observaciones_Adicionales">Observaciones Adicionales</CFormLabel>
                 <CFormTextarea
-                  id="observaciones_adicionales"
-                  name="observaciones_adicionales"
-                  value={viviendaData.observaciones_adicionales}
+                  id="Observaciones_Adicionales"
+                  name="Observaciones_Adicionales"
+                  value={viviendaData.Observaciones_Adicionales}
                   onChange={handleViviendaChange}
                   rows={4}
                 />
@@ -697,68 +679,6 @@ const RegistroTerrenos = () => {
         </CModalFooter>
       </CModal>
 
-      {/* Modal para agregar propietarios */}
-      <CModal visible={modalPropietarioVisible} onClose={() => setModalPropietarioVisible(false)}>
-        <CModalHeader closeButton>
-          <CModalTitle>Agregar Propietario</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CForm>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel htmlFor="nombre">Nombre</CFormLabel>
-                <CFormInput
-                  id="nombre"
-                  name="nombre"
-                  value={propietarioData.nombre}
-                  onChange={handlePropietarioChange}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel htmlFor="apellido">Apellido</CFormLabel>
-                <CFormInput
-                  id="apellido"
-                  name="apellido"
-                  value={propietarioData.apellido}
-                  onChange={handlePropietarioChange}
-                />
-              </CCol>
-            </CRow>
-            <CRow className="mb-3">
-              <CCol md={6}>
-                <CFormLabel htmlFor="identificacion">Identificación</CFormLabel>
-                <CFormInput
-                  id="identificacion"
-                  name="identificacion"
-                  value={propietarioData.identificacion}
-                  onChange={handlePropietarioChange}
-                />
-              </CCol>
-              <CCol md={6}>
-                <CFormLabel htmlFor="porcentaje_propiedad">Porcentaje de Propiedad</CFormLabel>
-                <CFormInput
-                  id="porcentaje_propiedad"
-                  name="porcentaje_propiedad"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={propietarioData.porcentaje_propiedad}
-                  onChange={handlePropietarioChange}
-                />
-              </CCol>
-            </CRow>
-          </CForm>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="primary" onClick={addPropietario}>
-            Guardar Propietario
-          </CButton>
-          <CButton color="secondary" onClick={() => setModalPropietarioVisible(false)}>
-            Cancelar
-          </CButton>
-        </CModalFooter>
-      </CModal>
-
       <CCol xs={12} className="mt-4">
         <CCard>
           <CCardHeader>
@@ -769,19 +689,19 @@ const RegistroTerrenos = () => {
               lotes.map((lote, index) => (
                 <div key={index} className="mb-4">
                   <h6>Lote {index + 1}</h6>
-                  <p>ID: {lote.id_lote}</p>
+                  <p>ID: {lote.ID_Lote}</p>
                   <p>
-                    Medidas: N {lote.medidas_lote_norte}, S {lote.medidas_lote_sur}, E {lote.medidas_lote_este}, O{" "}
-                    {lote.medidas_lote_oeste}
+                    Medidas: N {lote.Medidas_Lote_Norte}, S {lote.Medidas_Lote_Sur}, E {lote.Medidas_Lote_Este}, O{" "}
+                    {lote.Medidas_Lote_Oeste}
                   </p>
-                  <p>Fecha de Registro: {lote.fecha_registro}</p>
+                  <p>Fecha de Registro: {lote.Fecha_Registro}</p>
                   <h6>Viviendas:</h6>
                   {lote.viviendas.length > 0 ? (
                     lote.viviendas.map((vivienda, vIndex) => (
                       <div key={vIndex} className="ml-4 mb-2">
-                        <p>ID: {vivienda.id_vivienda}</p>
-                        <p>Color: {vivienda.color}</p>
-                        <p>Área: {vivienda.area_construccion}</p>
+                        <p>ID: {vivienda.ID_Vivienda}</p>
+                        <p>Color: {vivienda.Color}</p>
+                        <p>Área: {vivienda.Area_Construccion}</p>
                       </div>
                     ))
                   ) : (
@@ -806,29 +726,6 @@ const RegistroTerrenos = () => {
         </CCard>
       </CCol>
 
-      <CCol xs={12} className="mt-4">
-        <CCard>
-          <CCardHeader>
-            <h5>Propietarios Registrados</h5>
-          </CCardHeader>
-          <CCardBody>
-            {propietarios.length > 0 ? (
-              propietarios.map((propietario, index) => (
-                <div key={index} className="mb-2">
-                  <p>
-                    Nombre: {propietario.nombre} {propietario.apellido}
-                  </p>
-                  <p>Identificación: {propietario.identificacion}</p>
-                  <p>Porcentaje de Propiedad: {propietario.porcentaje_propiedad}%</p>
-                </div>
-              ))
-            ) : (
-              <p>No se han agregado propietarios.</p>
-            )}
-          </CCardBody>
-        </CCard>
-      </CCol>
-
       <CCol xs={12} className="mt-3">
         <CButton color="success" onClick={handleSubmit}>
           Registrar Terreno
@@ -838,5 +735,5 @@ const RegistroTerrenos = () => {
   )
 }
 
-export default RegistroTerrenos
+export default PropertyRegistry
 

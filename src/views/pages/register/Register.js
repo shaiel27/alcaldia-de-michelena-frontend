@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   CButton,
   CCard,
@@ -10,54 +11,233 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
-} from '@coreui/react'
-import CIcon from '@coreui/icons-react'
-import { cilLockLocked, cilUser } from '@coreui/icons'
+  CAlert,
+} from "@coreui/react"
+import CIcon from "@coreui/icons-react"
+import { cilUser, cilLockLocked, cilEnvelopeClosed, cilLocationPin } from "@coreui/icons"
 
 const Register = () => {
+  const [formData, setFormData] = useState({
+    cedula: "",
+    nombre: "",
+    apellido: "",
+    direccion: "",
+    correo: "",
+    password: "",
+    confirmPassword: "",
+  })
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Las contraseñas no coinciden")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      // Primero, obtener todos los usuarios
+      const response = await fetch("http://localhost:3004/Usuario")
+      const users = await response.json()
+
+      // Verificar si existe un usuario con la misma cédula
+      const cedulaExists = users.some((user) => user.Cedula === formData.cedula)
+      if (cedulaExists) {
+        setError("Ya existe un usuario con esta cédula")
+        setIsLoading(false)
+        return
+      }
+
+      // Verificar si existe un usuario con el mismo correo
+      const emailExists = users.some((user) => user.Correo === formData.correo)
+      if (emailExists) {
+        setError("Ya existe un usuario con este correo electrónico")
+        setIsLoading(false)
+        return
+      }
+
+      // Si no existe, crear el nuevo usuario
+      const newUser = {
+        Cedula: formData.cedula,
+        Nombre: formData.nombre,
+        Apellido: formData.apellido,
+        Direccion: formData.direccion,
+        Correo: formData.correo,
+        Password: formData.password,
+      }
+
+      const registerResponse = await fetch("http://localhost:3004/Usuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newUser),
+      })
+
+      if (registerResponse.ok) {
+        console.log("Usuario registrado exitosamente")
+        navigate("/login")
+      } else {
+        throw new Error("Error en el registro")
+      }
+    } catch (error) {
+      console.error("Error:", error)
+      setError("Ocurrió un error durante el registro. Por favor, intente de nuevo.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">
+    <div className="register min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
         <CRow className="justify-content-center">
-          <CCol md={9} lg={7} xl={6}>
-            <CCard className="mx-4">
+          <CCol md={12} lg={10} xl={8}>
+            <CCard className="mx-4 bg-distortion">
               <CCardBody className="p-4">
-                <CForm>
-                  <h1>Register</h1>
-                  <p className="text-body-secondary">Create your account</p>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilUser} />
-                    </CInputGroupText>
-                    <CFormInput placeholder="Username" autoComplete="username" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>@</CInputGroupText>
-                    <CFormInput placeholder="Email" autoComplete="email" />
-                  </CInputGroup>
-                  <CInputGroup className="mb-3">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <CInputGroup className="mb-4">
-                    <CInputGroupText>
-                      <CIcon icon={cilLockLocked} />
-                    </CInputGroupText>
-                    <CFormInput
-                      type="password"
-                      placeholder="Repeat password"
-                      autoComplete="new-password"
-                    />
-                  </CInputGroup>
-                  <div className="d-grid">
-                    <CButton color="success">Create Account</CButton>
-                  </div>
+                <CForm onSubmit={handleSubmit}>
+                  <h1 className="mb-4 text-center">Registro</h1>
+                  <p className="text-medium-emphasis text-center mb-4">Crea tu cuenta</p>
+                  {error && <CAlert color="danger">{error}</CAlert>}
+                  <CRow>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilUser} />
+                        </CInputGroupText>
+                        <CFormInput
+                          placeholder="Cédula"
+                          name="cedula"
+                          value={formData.cedula}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilUser} />
+                        </CInputGroupText>
+                        <CFormInput
+                          placeholder="Nombre"
+                          name="nombre"
+                          value={formData.nombre}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                  </CRow>
+                  <CRow>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilUser} />
+                        </CInputGroupText>
+                        <CFormInput
+                          placeholder="Apellido"
+                          name="apellido"
+                          value={formData.apellido}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilEnvelopeClosed} />
+                        </CInputGroupText>
+                        <CFormInput
+                          type="email"
+                          placeholder="Correo Electrónico"
+                          name="correo"
+                          value={formData.correo}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                  </CRow>
+                  <CRow>
+                    <CCol md={12}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilLocationPin} />
+                        </CInputGroupText>
+                        <CFormInput
+                          placeholder="Dirección"
+                          name="direccion"
+                          value={formData.direccion}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                  </CRow>
+                  <CRow>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-3">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilLockLocked} />
+                        </CInputGroupText>
+                        <CFormInput
+                          type="password"
+                          placeholder="Contraseña"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                    <CCol md={6}>
+                      <CInputGroup className="mb-4">
+                        <CInputGroupText className="bg-distortion">
+                          <CIcon icon={cilLockLocked} />
+                        </CInputGroupText>
+                        <CFormInput
+                          type="password"
+                          placeholder="Repetir contraseña"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          required
+                          className="bg-distortion"
+                        />
+                      </CInputGroup>
+                    </CCol>
+                  </CRow>
+                  <CRow>
+                    <CCol xs={12}>
+                      <div className="d-grid">
+                        <CButton color="success" type="submit" disabled={isLoading}>
+                          {isLoading ? "Registrando..." : "Crear Cuenta"}
+                        </CButton>
+                      </div>
+                    </CCol>
+                  </CRow>
                 </CForm>
               </CCardBody>
             </CCard>
@@ -69,3 +249,4 @@ const Register = () => {
 }
 
 export default Register
+

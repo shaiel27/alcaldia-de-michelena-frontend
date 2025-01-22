@@ -1,0 +1,213 @@
+{
+  "Usuario": [
+    {
+      "Cedula": "V12345678",
+      "Nombre": "Juan",
+      "Apellido": "Pérez",
+      "Direccion": "Calle Falsa 123",
+      "Correo": "juan.perez@example.com",
+      "Password": "contraseña123"
+    },
+    {
+      "Cedula": "V87654321",
+      "Nombre": "María",
+      "Apellido": "González",
+      "Direccion": "Av. Siempreviva 742",
+      "Correo": "maria.gonzalez@example.com",
+      "Password": "clave456"
+    },
+    {
+      "id": "08d8",
+      "Cedula": "3213123",
+      "Nombre": "shaiel",
+      "Apellido": "becerra",
+      "Direccion": "luxemburgo",
+      "Correo": "shaielbecerra@gmail.com",
+      "Password": "clave456"
+    },
+    {
+      "id": "717d",
+      "Cedula": "123456",
+      "Nombre": "zabrina",
+      "Apellido": "colmenares",
+      "Direccion": "luxemburgo",
+      "Correo": "zabrinacolmenares89@gmail.com",
+      "Password": "1234"
+    }
+  ],
+  "Terreno": [
+    {
+      "ID_Terreno": 1,
+      "Medidas_Norte": "50m",
+      "Medidas_Sur": "50m",
+      "Medidas_Oeste": "100m",
+      "Colindancias_Norte": "Calle A",
+      "Colindancias_Este": "Calle B",
+      "Colindancias_Oeste": "Calle C",
+      "id": "1e22"
+    }
+  ],
+  "Lote": [
+    {
+      "ID_Lote": 1,
+      "ID_Vivienda": null,
+      "Terreno": 1,
+      "Medidas_Lote_Norte": "25m",
+      "Medidas_Lote_Sur": "25m",
+      "Medidas_Lote_Este": "50m",
+      "Medidas_Lote_Oeste": "50m",
+      "Colindancia_Lote_Norte": "Calle D",
+      "Colindancia_Lote_Sur": "Calle E",
+      "Colindancia_Lote_Este": "Calle F",
+      "Colindancia_Lote_Oeste": "Calle G",
+      "Fecha_Registro": "2025-01-21",
+      "Nmro_Registro": "ABC123",
+      "id": "c37d"
+    }
+  ],
+  "Vivienda": [
+    {
+      "ID_Vivienda": 1,
+      "Color": "Blanco",
+      "Tipo_Techo": "Teja",
+      "Area_Construccion": "150m2",
+      "Cant_Habitaciones": 3,
+      "Cant_Cocinas": 1,
+      "Cant_Baños": 2,
+      "Cant_Area_Servicios": 1,
+      "Cant_Sala_Estar": 1,
+      "Cant_Comedor": 1,
+      "Cant_Garage": 1,
+      "Cant_Oficina": 1,
+      "Descripcion_Piso": "Cerámica",
+      "Descripcion_Paredes": "Ladrillo",
+      "Descripcion_Techo": "Teja",
+      "Descripcion_Estructura": "Concreto",
+      "Descripcion_Tuberia": "PVC",
+      "Descripcion_Puertas": "Madera",
+      "Lote_fk": 1,
+      "id": "602d"
+    }
+  ],
+  "Solicitud_de_obra": [
+    {
+      "ID_Solicitud_de_obra": 1,
+      "Cedula": "V12345678",
+      "ID_Vivienda": 1,
+      "ID_Terreno": 1,
+      "Fecha": "2025-01-21",
+      "Descripcion": "Construcción de casa",
+      "Estatus": "Pendiente",
+      "Observacion": "N/A",
+      "Ubicacion": "Michelena",
+      "Tiempo_Obra": "6 meses",
+      "Monto": 15000,
+      "id": "1a89"
+    }
+  ],
+  "Dueños": [
+    {
+      "ID_Dueños": 1,
+      "Cedula": "V12345678",
+      "ID_Dueños_Anterior": null,
+      "ID_Terreno": 1,
+      "Status": "Activo",
+      "Porcentaje_de_Propiedad": "100%",
+      "Fecha_Tramite": "2025-01-20",
+      "Fecha_Adquisicion": "2025-01-21",
+      "id": "28e2"
+    }
+  ],
+  "Talonario": [
+    {
+      "ID_Talonario": 1,
+      "Monto": 100,
+      "id": "0bde"
+    }
+  ],
+  "Solicitud_Catastro": [
+    {
+      "ID_Catastro": 1,
+      "ID_Terreno": 1,
+      "Nmro_Talonario": 1,
+      "ID_Dueños": 1,
+      "Monto_Venta": 20000,
+      "Tipo_Tramite": "Venta",
+      "Descripcion": "Venta de terreno",
+      "Fecha": "2025-01-21",
+      "ID_Dueño_Anterior": null,
+      "id": "4e45"
+    }
+  ],
+  "Empleado": [
+    {
+      "ID_Empleado": 1,
+      "Nombre": "Carlos",
+      "Apellido": "López",
+      "Telefono": "04141234567",
+      "Direccion": "Calle Nueva 456",
+      "Correo": "carlos.lopez@example.com",
+      "id": "c6e3"
+    }
+  ],
+  "Detalle_solicitud": [
+    {
+      "ID_DetalleS": 1,
+      "ID_Empleado": 1,
+      "Obra": 1,
+      "Cargo": "Supervisor",
+      "id": "68f8"
+    }
+  ],
+  "Inspeccion": [
+    {
+      "ID_Inspeccion": 1,
+      "Detalle": 1,
+      "Descripcion_Problematica": "Ninguna",
+      "Fecha_Inspeccion": "2025-01-22",
+      "id": "d8c1"
+    }
+  ],
+  "Banco": [
+    {
+      "ID_Banco": 1,
+      "Nombre": "Banco del Pueblo",
+      "id": "2761"
+    }
+  ],
+  "Cuenta": [
+    {
+      "ID_Cuenta": 1,
+      "Nmro_Cuenta": "1234567890",
+      "ID_Banco": 1,
+      "id": "1665"
+    }
+  ],
+  "Detalle_Ayuda": [
+    {
+      "ID_Detalle_Ayuda": 1,
+      "Cedula_Usuario": "V12345678",
+      "Cedula_Beneficiario": "V87654321",
+      "ID_Cuenta": 1,
+      "id": "4871"
+    }
+  ],
+  "Area": [
+    {
+      "COD_Area": 1,
+      "Nombre": "Urbanismo",
+      "id": "1d49"
+    }
+  ],
+  "Ayuda": [
+    {
+      "ID_Ayuda": 1,
+      "ID_Detalle_Ayuda": 1,
+      "COD_Area": 1,
+      "Monto": 500,
+      "Descripcion": "Ayuda para construcción",
+      "Fecha": "2025-01-23",
+      "id": "44f5"
+    }
+  ]
+}

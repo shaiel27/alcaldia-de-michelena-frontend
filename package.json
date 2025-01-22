@@ -16,7 +16,8 @@
     "build": "vite build",
     "lint": "eslint \"src/**/*.js\"",
     "serve": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "server": "json-server --watch ./src/api/db.json --port 3004"
   },
   "dependencies": {
     "@coreui/chartjs": "^4.0.0",
@@ -31,6 +32,8 @@
     "chart.js": "^4.4.4",
     "classnames": "^2.5.1",
     "core-js": "^3.38.1",
+    "jose": "^5.9.6",
+    "jsonwebtoken": "^9.0.2",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

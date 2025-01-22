@@ -1,0 +1,31 @@
+{
+    "users": [
+      {
+        "id": 1,
+        "cedula": "V-1234567",
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "direccion": "Calle 1, Casa 1",
+        "correo": "juan.perez@example.com",
+        "password": "password123"
+      },
+      {
+        "id": 2,
+        "cedula": "V-2345678",
+        "nombre": "María",
+        "apellido": "González",
+        "direccion": "Avenida 2, Apt 3",
+        "correo": "maria.gonzalez@example.com",
+        "password": "password456"
+      },
+      {
+        "id": 3,
+        "cedula": "V-3456789",
+        "nombre": "Carlos",
+        "apellido": "Rodríguez",
+        "direccion": "Calle 3, Casa 5",
+        "correo": "carlos.rodriguez@example.com",
+        "password": "password789"
+      }
+    ]
+  }

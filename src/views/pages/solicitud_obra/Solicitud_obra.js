@@ -31,40 +31,20 @@ const ConstructionRequestForm = () => {
 
   const [terrenos, setTerrenos] = useState([]);
   const [selectedTerreno, setSelectedTerreno] = useState(null);
+  const api = helpFetch()
 
   useEffect(() => {
-    // Aquí normalmente harías una llamada a tu API para obtener los terrenos del usuario
-    // Por ahora, usaremos datos de ejemplo
-    const terrenosEjemplo = [
-      {
-        id: 1,
-        medidaNorte: '50 metros',
-        medidaSur: '50 metros',
-        medidaOeste: '30 metros',
-        colindanciaNorte: 'Calle 1',
-        colindanciaEste: 'Calle 2',
-        colindanciaOeste: 'Propiedad privada',
-        lotes: [
-          { id: 1, medidaNorte: '25 metros', medidaSur: '25 metros', medidaEste: '15 metros', medidaOeste: '15 metros' },
-          { id: 2, medidaNorte: '25 metros', medidaSur: '25 metros', medidaEste: '15 metros', medidaOeste: '15 metros' },
-        ]
-      },
-      {
-        id: 2,
-        medidaNorte: '60 metros',
-        medidaSur: '60 metros',
-        medidaOeste: '40 metros',
-        colindanciaNorte: 'Avenida Principal',
-        colindanciaEste: 'Parque',
-        colindanciaOeste: 'Calle 3',
-        lotes: [
-          { id: 3, medidaNorte: '30 metros', medidaSur: '30 metros', medidaEste: '20 metros', medidaOeste: '20 metros' },
-          { id: 4, medidaNorte: '30 metros', medidaSur: '30 metros', medidaEste: '20 metros', medidaOeste: '20 metros' },
-        ]
-      },
-    ];
-    setTerrenos(terrenosEjemplo);
-  }, []);
+    const fetchTerrenos = async () => {
+      try {
+        const data = await api.get("terrenos")
+        setTerrenos(data || [])
+      } catch (error) {
+        console.error("Error fetching terrenos:", error)
+      }
+    }
+
+    fetchTerrenos()
+  }, [])
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -92,11 +72,34 @@ const ConstructionRequestForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Aquí enviarías los datos a tu backend
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      const formDataToSend = new FormData()
+
+      // Append form data
+      Object.keys(formData).forEach((key) => {
+        if (key === "fotos") {
+          if (formData.fotos.length > 0) {
+            Array.from(formData.fotos).forEach((foto) => {
+              formDataToSend.append("fotos", foto)
+            })
+          }
+        } else {
+          formDataToSend.append(key, formData[key])
+        }
+      })
+
+      await api.post("solicitudes-obra", {
+        body: formDataToSend,
+      })
+
+      console.log("Solicitud enviada exitosamente")
+      // Reset form or redirect
+    } catch (error) {
+      console.error("Error submitting request:", error)
+    }
+  }
 
   return (
     <CCard className="mb-4">

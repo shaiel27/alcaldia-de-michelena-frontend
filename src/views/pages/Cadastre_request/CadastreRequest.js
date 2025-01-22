@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from "react"
 import {
   CButton,
   CCard,
@@ -15,44 +15,107 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
-} from '@coreui/react'
+} from "@coreui/react"
+import { helpFetch } from "../../../api/helpfetch"
+
+
 
 const ConstanciasCatastrales = () => {
+
+  
+  const [formData, setFormData] = useState({
+    cedula: "",
+    idTerreno: "",
+  })
+  const [constancias, setConstancias] = useState([])
+  const [loading, setLoading] = useState(false)
+  const api = helpFetch()
+
+  useEffect(() => {
+    fetchConstancias()
+  }, [])
+
+  const fetchConstancias = async () => {
+    try {
+      const data = await api.get("constancias")
+      setConstancias(data || [])
+    } catch (error) {
+      console.error("Error fetching constancias:", error)
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      await api.post("constancias", {
+        body: {
+          ...formData,
+          fecha: new Date().toISOString(),
+          estado: "Pendiente",
+        },
+      })
+      setFormData({
+        cedula: "",
+        idTerreno: "",
+      })
+      fetchConstancias()
+    } catch (error) {
+      console.error("Error submitting constancia:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <CRow>
-      {/* Formulario para solicitar constancias */}
       <CCol xs={12}>
         <CCard>
           <CCardHeader>
             <h5>Solicitud de Constancias Catastrales</h5>
           </CCardHeader>
           <CCardBody>
-            <CForm>
+            <CForm onSubmit={handleSubmit}>
               <CRow className="mb-3">
                 <CCol md={6}>
                   <CFormLabel>Cédula del Usuario</CFormLabel>
                   <CFormInput
                     type="text"
+                    name="cedula"
+                    value={formData.cedula}
+                    onChange={handleInputChange}
                     placeholder="Ingrese la cédula"
+                    required
                   />
                 </CCol>
                 <CCol md={6}>
                   <CFormLabel>ID del Terreno</CFormLabel>
                   <CFormInput
                     type="text"
+                    name="idTerreno"
+                    value={formData.idTerreno}
+                    onChange={handleInputChange}
                     placeholder="Ingrese el ID del terreno"
+                    required
                   />
                 </CCol>
               </CRow>
-              <CButton type="submit" color="primary">
-                Solicitar Constancia
+              <CButton type="submit" color="primary" disabled={loading}>
+                {loading ? "Enviando..." : "Solicitar Constancia"}
               </CButton>
             </CForm>
           </CCardBody>
         </CCard>
       </CCol>
 
-      {/* Tabla de historial de constancias */}
       <CCol xs={12}>
         <CCard className="mt-4">
           <CCardHeader>
@@ -70,12 +133,23 @@ const ConstanciasCatastrales = () => {
                 </CTableRow>
               </CTableHead>
               <CTableBody>
-                {/* Ejemplo de filas vacías */}
-                <CTableRow>
-                  <CTableDataCell colSpan="5" className="text-center">
-                    No hay constancias registradas
-                  </CTableDataCell>
-                </CTableRow>
+                {constancias.length > 0 ? (
+                  constancias.map((constancia, index) => (
+                    <CTableRow key={constancia.id}>
+                      <CTableDataCell>{index + 1}</CTableDataCell>
+                      <CTableDataCell>{constancia.cedula}</CTableDataCell>
+                      <CTableDataCell>{constancia.idTerreno}</CTableDataCell>
+                      <CTableDataCell>{constancia.estado}</CTableDataCell>
+                      <CTableDataCell>{new Date(constancia.fecha).toLocaleDateString()}</CTableDataCell>
+                    </CTableRow>
+                  ))
+                ) : (
+                  <CTableRow>
+                    <CTableDataCell colSpan="5" className="text-center">
+                      No hay constancias registradas
+                    </CTableDataCell>
+                  </CTableRow>
+                )}
               </CTableBody>
             </CTable>
           </CCardBody>
@@ -86,3 +160,4 @@ const ConstanciasCatastrales = () => {
 }
 
 export default ConstanciasCatastrales
+
