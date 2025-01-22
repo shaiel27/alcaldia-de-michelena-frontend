@@ -16,7 +16,6 @@ import {
   CModalTitle,
   CRow,
   CFormSelect,
-  CCardTitle,
 } from "@coreui/react"
 
 const RegistroTerrenos = () => {
@@ -195,6 +194,16 @@ const RegistroTerrenos = () => {
             <CForm>
               <CRow className="mb-3">
                 <CCol md={6}>
+                  <CFormLabel htmlFor="id_terreno">ID del Terreno</CFormLabel>
+                  <CFormInput
+                    id="id_terreno"
+                    name="id_terreno"
+                    value={terrenoData.id_terreno}
+                    onChange={handleTerrenoChange}
+                    required
+                  />
+                </CCol>
+                <CCol md={6}>
                   <CFormLabel htmlFor="direccion">Dirección del Terreno</CFormLabel>
                   <CFormInput
                     id="direccion"
@@ -204,9 +213,6 @@ const RegistroTerrenos = () => {
                     required
                   />
                 </CCol>
-              </CRow>
-              <CRow>
-                  <CModalTitle> Medidas del terreno</CModalTitle>
               </CRow>
               <CRow className="mb-3">
                 <CCol md={3}>
@@ -245,9 +251,6 @@ const RegistroTerrenos = () => {
                     onChange={handleTerrenoChange}
                   />
                 </CCol>
-              </CRow>
-              <CRow>
-                  <CModalTitle> Colindancias del terreno</CModalTitle>
               </CRow>
               <CRow className="mb-3">
                 <CCol md={3}>

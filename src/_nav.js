@@ -31,8 +31,13 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Registro de Obras',
+        name: 'Solicitud de Obras',
         to: '/solicitud_obra',
+      },
+      {
+        component: CNavItem,
+        name: 'Solicitud de Ventas',
+        to: '/property_transaction',
       },
       {
         component: CNavItem,
@@ -88,7 +93,7 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Problemáticas',
-        to: '/aguas/problematicas',
+        to: '/WaterComplaintForm',
       },
     ],
   },
@@ -153,6 +158,12 @@ const _nav = [
     component: CNavItem,
     name: 'Registrar Terrenos',
     to: '/registro_terreno',
+    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Propiedades',
+    to: '/propiedades_usuario',
     icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
   },
 ]
