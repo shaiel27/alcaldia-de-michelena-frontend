@@ -17,7 +17,8 @@ import {
   CRow,
   CAlert,
 } from "@coreui/react"
-import { helpFetch } from "../api/helpfetch"
+import { helpFetch } from "../../../api/helpfetch"
+import { useNavigate } from "react-router-dom"
 
 const PropertyRegistry = () => {
   const api = helpFetch()
@@ -76,6 +77,17 @@ const PropertyRegistry = () => {
   })
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [currentUser, setCurrentUser] = useState(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const userString = localStorage.getItem("currentUser")
+    if (userString) {
+      setCurrentUser(JSON.parse(userString))
+    } else {
+      navigate("/login")
+    }
+  }, [navigate])
 
   const handleTerrenoChange = (e) => {
     const { name, value } = e.target
@@ -151,6 +163,7 @@ const PropertyRegistry = () => {
 
   const handleSubmit = async () => {
     try {
+      // 1. Registrar el terreno
       const newTerreno = {
         ...terrenoData,
         Lote: lotes.map((lote) => ({
@@ -159,9 +172,31 @@ const PropertyRegistry = () => {
         })),
       }
 
-      await api.post("Terreno", { body: newTerreno })
+      const terrenoResponse = await api.post("Terreno", { body: newTerreno })
+
+      if (terrenoResponse.error) {
+        throw new Error("Error al registrar el terreno")
+      }
+
+      // 2. Registrar en la tabla Dueños
+      const duenoData = {
+        Cedula: currentUser.Cedula,
+        ID_Terreno: terrenoResponse.ID_Terreno,
+        Status: "Activo",
+        Porcentaje_de_Propiedad: "100%",
+        Fecha_Tramite: new Date().toISOString().split("T")[0],
+        Fecha_Adquisicion: new Date().toISOString().split("T")[0],
+      }
+
+      const duenoResponse = await api.post("Dueños", { body: duenoData })
+
+      if (duenoResponse.error) {
+        throw new Error("Error al registrar el dueño")
+      }
+
       setSuccess("Terreno registrado exitosamente!")
       setError("")
+
       // Reset form
       setTerrenoData({
         ID_Terreno: "",
@@ -177,10 +212,37 @@ const PropertyRegistry = () => {
       setLotes([])
     } catch (error) {
       console.error("Error registering terreno:", error)
-      setError("Error al registrar el terreno")
+      setError("Error al registrar el terreno: " + error.message)
       setSuccess("")
     }
   }
+
+  useEffect(() => {
+    const fetchTerrenos = async () => {
+      try {
+        const data = await api.get("Terreno")
+        if (data.error) {
+          throw new Error(data.statusText)
+        }
+        // You can use this data to display existing terrenos or for validation
+        console.log("Existing terrenos:", data)
+      } catch (error) {
+        console.error("Error fetching terrenos:", error)
+        setError("Error al cargar terrenos existentes: " + error.message)
+      }
+    }
+
+    fetchTerrenos()
+  }, [])
+
+  useEffect(() => {
+    const userString = localStorage.getItem("currentUser")
+    if (userString) {
+      setCurrentUser(JSON.parse(userString))
+    } else {
+      navigate("/login")
+    }
+  }, [navigate])
 
   return (
     <CRow>

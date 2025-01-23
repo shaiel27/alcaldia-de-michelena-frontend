@@ -6,7 +6,8 @@
       "Apellido": "Pérez",
       "Direccion": "Calle Falsa 123",
       "Correo": "juan.perez@example.com",
-      "Password": "contraseña123"
+      "Password": "contraseña123",
+      "id": "0e50"
     },
     {
       "Cedula": "V87654321",
@@ -14,7 +15,8 @@
       "Apellido": "González",
       "Direccion": "Av. Siempreviva 742",
       "Correo": "maria.gonzalez@example.com",
-      "Password": "clave456"
+      "Password": "clave456",
+      "id": "3e7b"
     },
     {
       "id": "08d8",
@@ -45,6 +47,173 @@
       "Colindancias_Este": "Calle B",
       "Colindancias_Oeste": "Calle C",
       "id": "1e22"
+    },
+    {
+      "id": "1022",
+      "ID_Terreno": "1",
+      "Medidas_Norte": "1",
+      "Medidas_Sur": "1",
+      "Medidas_Este": "1",
+      "Medidas_Oeste": "1",
+      "Colindancias_Norte": "1",
+      "Colindancias_Sur": "1",
+      "Colindancias_Este": "1",
+      "Colindancias_Oeste": "1",
+      "Lote": [
+        {
+          "ID_Lote": "1",
+          "Medidas_Lote_Norte": "1",
+          "Medidas_Lote_Sur": "1",
+          "Medidas_Lote_Este": "1",
+          "Medidas_Lote_Oeste": "1",
+          "Colindancia_Lote_Norte": "1",
+          "Colindancia_Lote_Sur": "1",
+          "Colindancia_Lote_Este": "1",
+          "Colindancia_Lote_Oeste": "1",
+          "Fecha_Registro": "2025-01-22",
+          "Nmro_Registro": "1",
+          "viviendas": [],
+          "Vivienda": []
+        }
+      ]
+    },
+    {
+      "id": "0c7a",
+      "ID_Terreno": "12",
+      "Medidas_Norte": "12",
+      "Medidas_Sur": "12",
+      "Medidas_Este": "12",
+      "Medidas_Oeste": "12",
+      "Colindancias_Norte": "12",
+      "Colindancias_Sur": "12",
+      "Colindancias_Este": "12",
+      "Colindancias_Oeste": "12",
+      "Lote": [
+        {
+          "ID_Lote": "12",
+          "Medidas_Lote_Norte": "12",
+          "Medidas_Lote_Sur": "12",
+          "Medidas_Lote_Este": "12",
+          "Medidas_Lote_Oeste": "12",
+          "Colindancia_Lote_Norte": "12",
+          "Colindancia_Lote_Sur": "12",
+          "Colindancia_Lote_Este": "12",
+          "Colindancia_Lote_Oeste": "12",
+          "Fecha_Registro": "2025-01-22",
+          "Nmro_Registro": "12",
+          "viviendas": [
+            {
+              "ID_Vivienda": "1",
+              "Color": "1",
+              "Tipo_Techo": "1",
+              "Area_Construccion": "1",
+              "Cant_Habitaciones": "1",
+              "Cant_Cocinas": "1",
+              "Cant_Baños": "1",
+              "Cant_Area_Servicios": "1",
+              "Cant_Sala_Estar": "1",
+              "Cant_Comedor": "1",
+              "Cant_Garage": "1",
+              "Cant_Oficina": "1",
+              "Descripcion_Piso": "1",
+              "Descripcion_Paredes": "1",
+              "Descripcion_Techo": "1",
+              "Descripcion_Estructura": "1",
+              "Descripcion_Tuberia": "1",
+              "Descripcion_Puertas": "1",
+              "Descripcion_Ventanas": "1",
+              "Descripcion_Instalacion_Electrica": "1",
+              "Descripcion_Instalacion_Sanitaria": "1",
+              "Descripcion_Acabados": "1",
+              "Observaciones_Adicionales": "1"
+            }
+          ],
+          "Vivienda": [
+            {
+              "ID_Vivienda": "1",
+              "Color": "1",
+              "Tipo_Techo": "1",
+              "Area_Construccion": "1",
+              "Cant_Habitaciones": "1",
+              "Cant_Cocinas": "1",
+              "Cant_Baños": "1",
+              "Cant_Area_Servicios": "1",
+              "Cant_Sala_Estar": "1",
+              "Cant_Comedor": "1",
+              "Cant_Garage": "1",
+              "Cant_Oficina": "1",
+              "Descripcion_Piso": "1",
+              "Descripcion_Paredes": "1",
+              "Descripcion_Techo": "1",
+              "Descripcion_Estructura": "1",
+              "Descripcion_Tuberia": "1",
+              "Descripcion_Puertas": "1",
+              "Descripcion_Ventanas": "1",
+              "Descripcion_Instalacion_Electrica": "1",
+              "Descripcion_Instalacion_Sanitaria": "1",
+              "Descripcion_Acabados": "1",
+              "Observaciones_Adicionales": "1"
+            }
+          ]
+        }
+      ],
+      "userId": "3e7b"
+    },
+    {
+      "id": "1e05",
+      "ID_Terreno": "1",
+      "Medidas_Norte": "1",
+      "Medidas_Sur": "1",
+      "Medidas_Este": "1",
+      "Medidas_Oeste": "1",
+      "Colindancias_Norte": "1",
+      "Colindancias_Sur": "1",
+      "Colindancias_Este": "1",
+      "Colindancias_Oeste": "1",
+      "Lote": [],
+      "userId": "3e7b"
+    },
+    {
+      "id": "2329",
+      "ID_Terreno": "1",
+      "Medidas_Norte": "1",
+      "Medidas_Sur": "1",
+      "Medidas_Este": "1",
+      "Medidas_Oeste": "1",
+      "Colindancias_Norte": "1",
+      "Colindancias_Sur": "1",
+      "Colindancias_Este": "1",
+      "Colindancias_Oeste": "1",
+      "Lote": []
+    },
+    {
+      "id": "9bfc",
+      "ID_Terreno": "1",
+      "Medidas_Norte": "1",
+      "Medidas_Sur": "1",
+      "Medidas_Este": "1",
+      "Medidas_Oeste": "1",
+      "Colindancias_Norte": "1",
+      "Colindancias_Sur": "1",
+      "Colindancias_Este": "1",
+      "Colindancias_Oeste": "1",
+      "Lote": [
+        {
+          "ID_Lote": "11",
+          "Medidas_Lote_Norte": "1",
+          "Medidas_Lote_Sur": "1",
+          "Medidas_Lote_Este": "1",
+          "Medidas_Lote_Oeste": "1",
+          "Colindancia_Lote_Norte": "1",
+          "Colindancia_Lote_Sur": "1",
+          "Colindancia_Lote_Este": "1",
+          "Colindancia_Lote_Oeste": "1",
+          "Fecha_Registro": "2025-01-22",
+          "Nmro_Registro": "1",
+          "viviendas": [],
+          "Vivienda": []
+        }
+      ]
     }
   ],
   "Lote": [
@@ -116,6 +285,24 @@
       "Fecha_Tramite": "2025-01-20",
       "Fecha_Adquisicion": "2025-01-21",
       "id": "28e2"
+    },
+    {
+      "id": "1258",
+      "Cedula": "V87654321",
+      "ID_Terreno": "1",
+      "Status": "Activo",
+      "Porcentaje_de_Propiedad": "100%",
+      "Fecha_Tramite": "2025-01-23",
+      "Fecha_Adquisicion": "2025-01-23"
+    },
+    {
+      "id": "65d9",
+      "Cedula": "V87654321",
+      "ID_Terreno": "1",
+      "Status": "Activo",
+      "Porcentaje_de_Propiedad": "100%",
+      "Fecha_Tramite": "2025-01-23",
+      "Fecha_Adquisicion": "2025-01-23"
     }
   ],
   "Talonario": [

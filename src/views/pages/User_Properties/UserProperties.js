@@ -1,122 +1,152 @@
-import React, { useState } from "react"
-import {
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCol,
-  CRow,
-  CFormInput,
-  CFormSelect,
-  CButton,
-  CListGroup,
-  CListGroupItem,
-  CBadge,
-  CProgress,
-} from "@coreui/react"
-import CIcon from "@coreui/icons-react"
-import { cilHouse, cilLayers, cilSearch } from "@coreui/icons"
+import React, { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { CCard, CCardBody, CCardHeader, CCol, CRow, CListGroup, CListGroupItem, CSpinner, CAlert } from "@coreui/react"
 import { helpFetch } from "../../../api/helpfetch"
 
-const VisualizacionPropiedades = () => {
-  const [filtro, setFiltro] = useState("")
-  const [tipoPropiedad, setTipoPropiedad] = useState("todos")
-  const [propiedades, setPropiedades] = useState([])
+const UserProperties = () => {
+  const [properties, setProperties] = useState([])
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
   const api = helpFetch()
 
   useEffect(() => {
-    const fetchPropiedades = async () => {
-      try {
-        const data = await api.get("propiedades")
-        setPropiedades(data || [])
-      } catch (error) {
-        console.error("Error fetching properties:", error)
+    const userString = localStorage.getItem("currentUser")
+    if (userString) {
+      const user = JSON.parse(userString)
+      setCurrentUser(user)
+      if (user.Cedula) {
+        fetchUserProperties(user.Cedula)
       }
+    } else {
+      navigate("/login")
     }
+  }, [navigate])
 
-    fetchPropiedades()
-  }, [])
+  const fetchUserProperties = async (cedula) => {
+    try {
+      setLoading(true)
+      // 1. Obtener los registros de Dueños activos para esta cédula
+      const duenosResponse = await api.get(`Dueños?Cedula=${cedula}&Status=Activo`)
 
-  const propiedadesFiltradas = propiedades.filter(
-    (propiedad) =>
-      (tipoPropiedad === "todos" || propiedad.tipo === tipoPropiedad) &&
-      (propiedad.nombre.toLowerCase().includes(filtro.toLowerCase()) ||
-        propiedad.direccion.toLowerCase().includes(filtro.toLowerCase())),
-  )
+      if (!duenosResponse || duenosResponse.error || duenosResponse.length === 0) {
+        setProperties([])
+        setError("No se encontraron propiedades para este usuario.")
+        return
+      }
+
+      // 2. Obtener los terrenos correspondientes
+      const terrenosPromises = duenosResponse.map((dueno) => api.get(`Terreno?ID_Terreno=${dueno.ID_Terreno}`))
+
+      const terrenosResponses = await Promise.all(terrenosPromises)
+      const terrenosValidos = terrenosResponses
+        .filter((response) => response && !response.error && response.length > 0)
+        .map((response) => response[0])
+
+      setProperties(terrenosValidos)
+      setError(null)
+    } catch (err) {
+      console.error("Error fetching properties:", err)
+      setError("Error al cargar las propiedades. Por favor, intente de nuevo.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center">
+        <CSpinner color="primary" />
+      </div>
+    )
+  }
 
   return (
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <h4 className="mb-0">Mis Propiedades</h4>
+            <h5>Mis Propiedades</h5>
           </CCardHeader>
           <CCardBody>
-            <CRow className="mb-3">
-              <CCol md={4}>
-                <CFormInput
-                  type="text"
-                  placeholder="Buscar por nombre o dirección"
-                  value={filtro}
-                  onChange={(e) => setFiltro(e.target.value)}
-                />
-              </CCol>
-              <CCol md={4}>
-                <CFormSelect value={tipoPropiedad} onChange={(e) => setTipoPropiedad(e.target.value)}>
-                  <option value="todos">Todos los tipos</option>
-                  <option value="terreno">Terrenos</option>
-                  <option value="vivienda">Viviendas</option>
-                </CFormSelect>
-              </CCol>
-              <CCol md={4}>
-                <CButton color="primary" className="w-100">
-                  <CIcon icon={cilSearch} className="me-2" />
-                  Buscar
-                </CButton>
-              </CCol>
-            </CRow>
-
-            <CListGroup>
-              {propiedadesFiltradas.map((propiedad) => (
-                <CListGroupItem key={propiedad.id} className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="mb-1">
-                      {propiedad.tipo === "terreno" ? (
-                        <CIcon icon={cilLayers} className="me-2" />
-                      ) : (
-                        <CIcon icon={cilHouse} className="me-2" />
-                      )}
-                      {propiedad.nombre}
-                    </h5>
-                    <p className="mb-1">{propiedad.direccion}</p>
-                    {propiedad.tipo === "terreno" ? (
-                      <small>
-                        Área: {propiedad.area} m² | Unidades: {propiedad.unidades}
-                      </small>
-                    ) : (
-                      <small>
-                        Habitaciones: {propiedad.habitaciones} | Baños: {propiedad.banos}
-                      </small>
+            {error && <CAlert color="danger">{error}</CAlert>}
+            {properties.length > 0 ? (
+              <CListGroup>
+                {properties.map((property) => (
+                  <CListGroupItem key={property.id || property.ID_Terreno}>
+                    <h6>Terreno {property.ID_Terreno}</h6>
+                    <p>
+                      <strong>Medidas:</strong>
+                      <br />
+                      Norte: {property.Medidas_Norte || "N/A"}
+                      <br />
+                      Sur: {property.Medidas_Sur || "N/A"}
+                      <br />
+                      Este: {property.Medidas_Este || "N/A"}
+                      <br />
+                      Oeste: {property.Medidas_Oeste || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Colindancias:</strong>
+                      <br />
+                      Norte: {property.Colindancias_Norte || "N/A"}
+                      <br />
+                      Sur: {property.Colindancias_Sur || "N/A"}
+                      <br />
+                      Este: {property.Colindancias_Este || "N/A"}
+                      <br />
+                      Oeste: {property.Colindancias_Oeste || "N/A"}
+                    </p>
+                    {property.Lote && property.Lote.length > 0 && (
+                      <>
+                        <h6 className="mt-3">Lotes:</h6>
+                        <CListGroup>
+                          {property.Lote.map((lote) => (
+                            <CListGroupItem key={lote.ID_Lote}>
+                              <h6>Lote {lote.ID_Lote}</h6>
+                              <p>
+                                <strong>Medidas del Lote:</strong>
+                                <br />
+                                Norte: {lote.Medidas_Lote_Norte || "N/A"}
+                                <br />
+                                Sur: {lote.Medidas_Lote_Sur || "N/A"}
+                                <br />
+                                Este: {lote.Medidas_Lote_Este || "N/A"}
+                                <br />
+                                Oeste: {lote.Medidas_Lote_Oeste || "N/A"}
+                              </p>
+                              {lote.Vivienda && lote.Vivienda.length > 0 && (
+                                <>
+                                  <h6 className="mt-3">Viviendas:</h6>
+                                  <CListGroup>
+                                    {lote.Vivienda.map((vivienda) => (
+                                      <CListGroupItem key={vivienda.ID_Vivienda}>
+                                        <h6>Vivienda {vivienda.ID_Vivienda}</h6>
+                                        <p>
+                                          <strong>Detalles:</strong>
+                                          <br />
+                                          Color: {vivienda.Color || "N/A"}
+                                          <br />
+                                          Tipo de Techo: {vivienda.Tipo_Techo || "N/A"}
+                                          <br />
+                                          Área de Construcción: {vivienda.Area_Construccion || "N/A"}
+                                        </p>
+                                      </CListGroupItem>
+                                    ))}
+                                  </CListGroup>
+                                </>
+                              )}
+                            </CListGroupItem>
+                          ))}
+                        </CListGroup>
+                      </>
                     )}
-                  </div>
-                  <div className="text-end">
-                    <CBadge color={propiedad.tipo === "terreno" ? "primary" : "success"} className="mb-2">
-                      {propiedad.tipo === "terreno" ? "Terreno" : "Vivienda"}
-                    </CBadge>
-                    {propiedad.tipo === "terreno" && (
-                      <CProgress className="mt-2" height={10}>
-                        <CProgress color="info" variant="striped" animated value={(propiedad.unidades / 5) * 100} />
-                      </CProgress>
-                    )}
-                  </div>
-                </CListGroupItem>
-              ))}
-            </CListGroup>
-
-            {propiedadesFiltradas.length === 0 && (
-              <div className="text-center mt-4">
-                <h5>No se encontraron propiedades</h5>
-                <p>Intente con otros criterios de búsqueda</p>
-              </div>
+                  </CListGroupItem>
+                ))}
+              </CListGroup>
+            ) : (
+              <p>No tienes propiedades registradas.</p>
             )}
           </CCardBody>
         </CCard>
@@ -125,5 +155,5 @@ const VisualizacionPropiedades = () => {
   )
 }
 
-export default VisualizacionPropiedades
+export default UserProperties
 

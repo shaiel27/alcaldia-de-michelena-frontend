@@ -1,44 +1,53 @@
-export const helpFetch=()=>{
-    const URL="http://localhost:3004/"
-
-    const customFetch=(endpoint, options = {})=>{
-    options.method = options.method || "GET"
-    options.headers = {
-        "content-type": "application/json"
-    }
-
-    if(options.body){
-        options.body = JSON.stringify(options.body)
-    }
-    console.log(options);
-
-    return fetch(`${URL}${endpoint}`, options ).then(response =>{
-        return response.ok ? response.json() : Promise.reject({
-            error: true,
-            status: response.status, 
-            statusText: response.statusText
-        })
-    }).catch( error => error)
-    }
-////////////////////////////////////////////////////////////
-    const get = (endpoint)=> customFetch(endpoint)
-    
-    const post = (endpoint, options) =>{
-        options.method = "POST"
-        return customFetch(endpoint, options)
-    }
-   
-    const put = (endpoint, options, id) =>{
-        options.method = "PUT"
-        return customFetch(`${endpoint}/${id}`, options)
-    }
-
-    const delet = (endpoint, id) =>{
-        const options = {
-            method: "DELETE"
+export const helpFetch = () => {
+    const URL = "http://localhost:3004/"
+  
+    const customFetch = (endpoint, options = {}) => {
+      options.method = options.method || "GET"
+  
+      if (!(options.body instanceof FormData)) {
+        options.headers = {
+          "Content-Type": "application/json",
+          ...options.headers,
         }
-        return customFetch(`${endpoint}/${id}`, options)
+        if (options.body) {
+          options.body = JSON.stringify(options.body)
+        }
+      }
+  
+      return fetch(`${URL}${endpoint}`, options)
+        .then((response) => {
+          if (!response.ok) {
+            return Promise.reject({
+              error: true,
+              status: response.status,
+              statusText: response.statusText,
+            })
+          }
+          return response.json()
+        })
+        .catch((error) => error)
     }
-
-    return {get, post, put, delet}
-}
+  
+    const get = (endpoint) => customFetch(endpoint)
+  
+    const post = (endpoint, options) => {
+      options.method = "POST"
+      return customFetch(endpoint, options)
+    }
+  
+    const put = (endpoint, options) => {
+      options.method = "PUT"
+      return customFetch(endpoint, options)
+    }
+  
+    const del = (endpoint, id) => {
+      const options = {
+        method: "DELETE",
+      }
+      return customFetch(`${endpoint}/${id}`, options)
+    }
+  
+    return { get, post, put, del }
+  }
+  
+  
