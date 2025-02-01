@@ -58,7 +58,7 @@ const _nav = [
       {
         component: CNavItem,
         name: "Inspecciones",
-        to: "/catastro/inspecciones",
+        to: "/inspecciones",
       },
     ],
   },
@@ -120,18 +120,18 @@ const _nav = [
       {
         component: CNavItem,
         name: "Rentas",
-        to: "/administracion/rentas",
+        to: "/rentas",
       },
-      {
-        component: CNavItem,
-        name: "Recursos Humanos",
-        to: "/administracion/recursos-humanos",
-      },
-      {
-        component: CNavItem,
-        name: "Hacienda",
-        to: "/administracion/hacienda",
-      },
+      // {
+      //   component: CNavItem,
+      //   name: "Recursos Humanos",
+      //   to: "/administracion/recursos-humanos",
+      // },
+      // {
+      //   component: CNavItem,
+      //   name: "Hacienda",
+      //   to: "/administracion/hacienda",
+      // },
     ],
   },
   {
@@ -140,36 +140,36 @@ const _nav = [
     to: "/adminAyudas",
     icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
   },
-  {
-    component: CNavGroup,
-    name: "Transparencia",
-    to: "/transparencia",
-    icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
-    items: [
-      {
-        component: CNavItem,
-        name: "Acceso a Información Pública",
-        to: "/transparencia/informacion-publica",
-      },
-      {
-        component: CNavItem,
-        name: "Retroalimentación Ciudadana",
-        to: "/transparencia/retroalimentacion",
-      },
-    ],
-  },
+  // {
+  //   component: CNavGroup,
+  //   name: "Transparencia",
+  //   to: "/transparencia",
+  //   icon: <CIcon icon={cilChartPie} customClassName="nav-icon" />,
+  //   items: [
+  //     {
+  //       component: CNavItem,
+  //       name: "Acceso a Información Pública",
+  //       to: "/transparencia/informacion-publica",
+  //     },
+  //     {
+  //       component: CNavItem,
+  //       name: "Retroalimentación Ciudadana",
+  //       to: "/transparencia/retroalimentacion",
+  //     },
+  //   ],
+  // },
   {
     component: CNavItem,
     name: "Turismo e Información",
     to: "/turismo",
     icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
   },
-  {
-    component: CNavItem,
-    name: "Soporte Técnico",
-    to: "/soporte",
-    icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
-  },
+  // {
+  //   component: CNavItem,
+  //   name: "Soporte Técnico",
+  //   to: "/soporte",
+  //   icon: <CIcon icon={cilBell} customClassName="nav-icon" />,
+  // },
 ]
 
 export default _nav

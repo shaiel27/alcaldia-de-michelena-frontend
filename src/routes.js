@@ -16,6 +16,8 @@ const AdminRevisarSolicitudesAyuda = React.lazy(() => import("./views/pages/admi
 const TurismoInformacion = React.lazy(() => import("./views/pages/turismo/turismoInfo"))
 const HistorialTramitesIngenieria = React.lazy(() => import("./views/pages/historialIngenieria/historialingenieria"))
 const MonitoreoCalidadAgua = React.lazy(() => import("./views/pages/monitoreoAgua/monitoreoAgua"))
+const AdministracionRentasMichelena = React.lazy(() => import("./views/pages/rentas/rentas"))
+const GestionInspeccionesIngenieria = React.lazy(() => import("./views/pages/inspecciones/inspecciones"))
 
 const routes = [
   { path: "/", exact: true, name: "Home" },
@@ -34,6 +36,8 @@ const routes = [
   { path: "/turismo", name: "TurismoInformacion", element: TurismoInformacion },
   { path: "/historialIngeieria", name: "HistorialTramitesIngenieria", element: HistorialTramitesIngenieria },
   { path: "/monitoreoAgua", name: "MonitoreoCalidadAgua", element: MonitoreoCalidadAgua },
+  { path: "/rentas", name: "AdministracionRentasMichelena", element: AdministracionRentasMichelena },
+  { path: "/inspecciones", name: "GestionInspeccionesIngenieria", element: GestionInspeccionesIngenieria },
 ]
 
 export default routes

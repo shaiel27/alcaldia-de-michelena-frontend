@@ -1,4 +1,4 @@
-import React from 'react'
+import { useState } from "react"
 import {
   CCard,
   CCardBody,
@@ -6,14 +6,22 @@ import {
   CCol,
   CRow,
   CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,
   CBadge,
   CProgress,
   CListGroup,
   CListGroupItem,
-  CChart,
-} from '@coreui/react'
+  CFormSelect,
+} from "@coreui/react"
+import { CChartLine, CChartPie } from "@coreui/react-chartjs"
 
 const MonitoreoCalidadAgua = () => {
+  const [selectedZone, setSelectedZone] = useState("Todas")
+
   const calidadData = {
     ph: 7.2,
     turbidez: 85,
@@ -64,6 +72,17 @@ const MonitoreoCalidadAgua = () => {
     return "danger"
   }
 
+  const ultimasMediciones = [
+    { fecha: "23/01/2025", ph: "7.2", turbidez: "0.5 NTU", cloro: "0.9 mg/L", estado: "success", zona: "Norte" },
+    { fecha: "22/01/2025", ph: "7.1", turbidez: "0.6 NTU", cloro: "0.85 mg/L", estado: "success", zona: "Sur" },
+    { fecha: "21/01/2025", ph: "7.3", turbidez: "0.8 NTU", cloro: "0.8 mg/L", estado: "info", zona: "Este" },
+    { fecha: "20/01/2025", ph: "7.0", turbidez: "0.7 NTU", cloro: "0.88 mg/L", estado: "success", zona: "Oeste" },
+    { fecha: "19/01/2025", ph: "7.2", turbidez: "0.5 NTU", cloro: "0.92 mg/L", estado: "success", zona: "Centro" },
+  ]
+
+  const filteredMediciones =
+    selectedZone === "Todas" ? ultimasMediciones : ultimasMediciones.filter((m) => m.zona === selectedZone)
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -77,22 +96,18 @@ const MonitoreoCalidadAgua = () => {
                 <h4>Indicadores de Calidad</h4>
                 <CListGroup className="mb-4">
                   {[
-                    { label: "pH del Agua (7.2)", value: calidadData.ph },
+                    { label: "pH del Agua", value: calidadData.ph },
                     { label: "Turbidez", value: calidadData.turbidez },
                     { label: "Nivel de Cloro", value: calidadData.cloro },
                     { label: "Control Bacteriológico", value: calidadData.bacterias },
-                    { label: "Minerales Esenciales", value: calidadData.minerales }
+                    { label: "Minerales Esenciales", value: calidadData.minerales },
                   ].map(({ label, value }, index) => (
                     <CListGroupItem key={index}>
                       <div className="d-flex justify-content-between align-items-center mb-1">
                         <span>{label}</span>
                         <CBadge color={getStatusColor(value)}>{value}%</CBadge>
                       </div>
-                      <CProgress 
-                        value={value} 
-                        color={getStatusColor(value)} 
-                        height={10} 
-                      />
+                      <CProgress value={value} color={getStatusColor(value)} height={10} />
                     </CListGroupItem>
                   ))}
                 </CListGroup>
@@ -100,8 +115,7 @@ const MonitoreoCalidadAgua = () => {
               <CCol md={6}>
                 <h4>Distribución de Calidad por Zonas</h4>
                 <div style={{ height: "300px" }}>
-                  <CChart
-                    type="pie"
+                  <CChartPie
                     data={distribucionCalidad}
                     options={{
                       maintainAspectRatio: false,
@@ -119,8 +133,7 @@ const MonitoreoCalidadAgua = () => {
               <CCol xs={12}>
                 <h4>Mediciones Diarias</h4>
                 <div style={{ height: "300px" }}>
-                  <CChart
-                    type="line"
+                  <CChartLine
                     data={medicionesDiarias}
                     options={{
                       maintainAspectRatio: false,
@@ -142,35 +155,41 @@ const MonitoreoCalidadAgua = () => {
             <CRow className="mt-4">
               <CCol xs={12}>
                 <h4>Últimas Mediciones</h4>
+                <div className="mb-3">
+                  <CFormSelect value={selectedZone} onChange={(e) => setSelectedZone(e.target.value)}>
+                    <option value="Todas">Todas las zonas</option>
+                    <option value="Norte">Norte</option>
+                    <option value="Sur">Sur</option>
+                    <option value="Este">Este</option>
+                    <option value="Oeste">Oeste</option>
+                    <option value="Centro">Centro</option>
+                  </CFormSelect>
+                </div>
                 <CTable bordered responsive>
-                  <thead>
-                    <tr>
-                      <th>Fecha</th>
-                      <th>pH</th>
-                      <th>Turbidez</th>
-                      <th>Cloro Residual</th>
-                      <th>Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { fecha: "23/01/2025", ph: "7.2", turbidez: "0.5 NTU", cloro: "0.9 mg/L", estado: "success" },
-                      { fecha: "22/01/2025", ph: "7.1", turbidez: "0.6 NTU", cloro: "0.85 mg/L", estado: "success" },
-                      { fecha: "21/01/2025", ph: "7.3", turbidez: "0.8 NTU", cloro: "0.8 mg/L", estado: "info" }
-                    ].map((medicion, index) => (
-                      <tr key={index}>
-                        <td>{medicion.fecha}</td>
-                        <td>{medicion.ph}</td>
-                        <td>{medicion.turbidez}</td>
-                        <td>{medicion.cloro}</td>
-                        <td>
-                          <CBadge color={medicion.estado}>
-                            {medicion.estado === "success" ? "Óptimo" : "Bueno"}
-                          </CBadge>
-                        </td>
-                      </tr>
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell>Fecha</CTableHeaderCell>
+                      <CTableHeaderCell>pH</CTableHeaderCell>
+                      <CTableHeaderCell>Turbidez</CTableHeaderCell>
+                      <CTableHeaderCell>Cloro Residual</CTableHeaderCell>
+                      <CTableHeaderCell>Estado</CTableHeaderCell>
+                      <CTableHeaderCell>Zona</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {filteredMediciones.map((medicion, index) => (
+                      <CTableRow key={index}>
+                        <CTableDataCell>{medicion.fecha}</CTableDataCell>
+                        <CTableDataCell>{medicion.ph}</CTableDataCell>
+                        <CTableDataCell>{medicion.turbidez}</CTableDataCell>
+                        <CTableDataCell>{medicion.cloro}</CTableDataCell>
+                        <CTableDataCell>
+                          <CBadge color={medicion.estado}>{medicion.estado === "success" ? "Óptimo" : "Bueno"}</CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell>{medicion.zona}</CTableDataCell>
+                      </CTableRow>
                     ))}
-                  </tbody>
+                  </CTableBody>
                 </CTable>
               </CCol>
             </CRow>
@@ -182,3 +201,4 @@ const MonitoreoCalidadAgua = () => {
 }
 
 export default MonitoreoCalidadAgua
+

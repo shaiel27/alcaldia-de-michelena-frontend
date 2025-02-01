@@ -214,6 +214,87 @@
           "Vivienda": []
         }
       ]
+    },
+    {
+      "id": "aee9",
+      "ID_Terreno": "121",
+      "Medidas_Norte": "12",
+      "Medidas_Sur": "12",
+      "Medidas_Este": "12",
+      "Medidas_Oeste": "12",
+      "Colindancias_Norte": "12",
+      "Colindancias_Sur": "12",
+      "Colindancias_Este": "12",
+      "Colindancias_Oeste": "12",
+      "Lote": [
+        {
+          "ID_Lote": "12",
+          "Medidas_Lote_Norte": "1221",
+          "Medidas_Lote_Sur": "21",
+          "Medidas_Lote_Este": "1212",
+          "Medidas_Lote_Oeste": "21",
+          "Colindancia_Lote_Norte": "21",
+          "Colindancia_Lote_Sur": "12",
+          "Colindancia_Lote_Este": "12",
+          "Colindancia_Lote_Oeste": "21",
+          "Fecha_Registro": "2025-02-01",
+          "Nmro_Registro": "12312",
+          "viviendas": [
+            {
+              "ID_Vivienda": "1231243",
+              "Color": "124",
+              "Tipo_Techo": "124",
+              "Area_Construccion": "124",
+              "Cant_Habitaciones": "241",
+              "Cant_Cocinas": "124",
+              "Cant_Baños": "124",
+              "Cant_Area_Servicios": "124",
+              "Cant_Sala_Estar": "124",
+              "Cant_Comedor": "124",
+              "Cant_Garage": "124214",
+              "Cant_Oficina": "124",
+              "Descripcion_Piso": "1",
+              "Descripcion_Paredes": "1",
+              "Descripcion_Techo": "1",
+              "Descripcion_Estructura": "1",
+              "Descripcion_Tuberia": "1",
+              "Descripcion_Puertas": "1",
+              "Descripcion_Ventanas": "1",
+              "Descripcion_Instalacion_Electrica": "11",
+              "Descripcion_Instalacion_Sanitaria": "1",
+              "Descripcion_Acabados": "1",
+              "Observaciones_Adicionales": "111"
+            }
+          ],
+          "Vivienda": [
+            {
+              "ID_Vivienda": "1231243",
+              "Color": "124",
+              "Tipo_Techo": "124",
+              "Area_Construccion": "124",
+              "Cant_Habitaciones": "241",
+              "Cant_Cocinas": "124",
+              "Cant_Baños": "124",
+              "Cant_Area_Servicios": "124",
+              "Cant_Sala_Estar": "124",
+              "Cant_Comedor": "124",
+              "Cant_Garage": "124214",
+              "Cant_Oficina": "124",
+              "Descripcion_Piso": "1",
+              "Descripcion_Paredes": "1",
+              "Descripcion_Techo": "1",
+              "Descripcion_Estructura": "1",
+              "Descripcion_Tuberia": "1",
+              "Descripcion_Puertas": "1",
+              "Descripcion_Ventanas": "1",
+              "Descripcion_Instalacion_Electrica": "11",
+              "Descripcion_Instalacion_Sanitaria": "1",
+              "Descripcion_Acabados": "1",
+              "Observaciones_Adicionales": "111"
+            }
+          ]
+        }
+      ]
     }
   ],
   "Lote": [
@@ -303,6 +384,15 @@
       "Porcentaje_de_Propiedad": "100%",
       "Fecha_Tramite": "2025-01-23",
       "Fecha_Adquisicion": "2025-01-23"
+    },
+    {
+      "id": "b42f",
+      "Cedula": "V87654321",
+      "ID_Terreno": "121",
+      "Status": "Activo",
+      "Porcentaje_de_Propiedad": "100%",
+      "Fecha_Tramite": "2025-02-01",
+      "Fecha_Adquisicion": "2025-02-01"
     }
   ],
   "Talonario": [
