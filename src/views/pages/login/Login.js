@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   CButton,
@@ -16,6 +16,7 @@ import {
 } from "@coreui/react"
 import CIcon from "@coreui/icons-react"
 import { cilLockLocked, cilEnvelopeClosed } from "@coreui/icons"
+import { helpFetch } from "../../../api/helpfetch"
 
 const Login = () => {
   const [email, setEmail] = useState("")
@@ -23,6 +24,7 @@ const Login = () => {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { get } = helpFetch()
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -30,12 +32,12 @@ const Login = () => {
     setError("")
 
     try {
-      const response = await fetch("http://localhost:3004/Usuario")
-      const users = await response.json()
+      const response = await get("Usuario")
+      if (response.error) throw new Error(response.statusText)
+      const users = response
       const user = users.find((u) => u.Correo === email && u.Password === password)
 
       if (user) {
-        // Eliminar la contraseña antes de almacenar en localStorage
         const { Password, ...userWithoutPassword } = user
         localStorage.setItem("currentUser", JSON.stringify(userWithoutPassword))
         localStorage.setItem("isAuthenticated", "true")

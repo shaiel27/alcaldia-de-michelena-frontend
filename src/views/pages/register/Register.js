@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   CButton,
@@ -15,6 +15,7 @@ import {
 } from "@coreui/react"
 import CIcon from "@coreui/icons-react"
 import { cilUser, cilLockLocked, cilEnvelopeClosed, cilLocationPin } from "@coreui/icons"
+import { helpFetch } from "../../../api/helpfetch"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ const Register = () => {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
+  const { get, post } = helpFetch()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -50,11 +52,10 @@ const Register = () => {
     }
 
     try {
-      // Primero, obtener todos los usuarios
-      const response = await fetch("http://localhost:3004/Usuario")
-      const users = await response.json()
+      const response = await get("Usuario")
+      if (response.error) throw new Error(response.statusText)
+      const users = response
 
-      // Verificar si existe un usuario con la misma cédula
       const cedulaExists = users.some((user) => user.Cedula === formData.cedula)
       if (cedulaExists) {
         setError("Ya existe un usuario con esta cédula")
@@ -62,7 +63,6 @@ const Register = () => {
         return
       }
 
-      // Verificar si existe un usuario con el mismo correo
       const emailExists = users.some((user) => user.Correo === formData.correo)
       if (emailExists) {
         setError("Ya existe un usuario con este correo electrónico")
@@ -70,7 +70,6 @@ const Register = () => {
         return
       }
 
-      // Si no existe, crear el nuevo usuario
       const newUser = {
         Cedula: formData.cedula,
         Nombre: formData.nombre,
@@ -80,20 +79,11 @@ const Register = () => {
         Password: formData.password,
       }
 
-      const registerResponse = await fetch("http://localhost:3004/Usuario", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newUser),
-      })
+      const registerResponse = await post("Usuario", { body: newUser })
+      if (registerResponse.error) throw new Error(registerResponse.statusText)
 
-      if (registerResponse.ok) {
-        console.log("Usuario registrado exitosamente")
-        navigate("/login")
-      } else {
-        throw new Error("Error en el registro")
-      }
+      console.log("Usuario registrado exitosamente")
+      navigate("/login")
     } catch (error) {
       console.error("Error:", error)
       setError("Ocurrió un error durante el registro. Por favor, intente de nuevo.")
