@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import {
   CButton,
   CCard,
@@ -8,6 +8,7 @@ import {
   CForm,
   CFormInput,
   CFormLabel,
+  CFormTextarea,
   CModal,
   CModalBody,
   CModalFooter,
@@ -15,15 +16,12 @@ import {
   CModalTitle,
   CRow,
   CAlert,
-  CSpinner,
 } from "@coreui/react"
 import { helpFetch } from "../../../api/helpfetch"
 import { useNavigate } from "react-router-dom"
 
 const PropertyRegistry = () => {
   const api = helpFetch()
-  const navigate = useNavigate()
-
   const [terrenoData, setTerrenoData] = useState({
     ID_Terreno: "",
     Medidas_Norte: "",
@@ -34,9 +32,6 @@ const PropertyRegistry = () => {
     Colindancias_Sur: "",
     Colindancias_Este: "",
     Colindancias_Oeste: "",
-    Superficie: "",
-    Ubicacion: "",
-    Direccion: "",
   })
   const [lotes, setLotes] = useState([])
   const [modalLoteVisible, setModalLoteVisible] = useState(false)
@@ -83,7 +78,7 @@ const PropertyRegistry = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [currentUser, setCurrentUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const userString = localStorage.getItem("currentUser")
@@ -92,21 +87,7 @@ const PropertyRegistry = () => {
     } else {
       navigate("/login")
     }
-    fetchExistingTerrenos()
   }, [navigate])
-
-  const fetchExistingTerrenos = async () => {
-    try {
-      const data = await api.get("Terreno")
-      if (data.error) {
-        throw new Error(data.message || "Error fetching terrenos")
-      }
-      console.log("Existing terrenos:", data)
-    } catch (error) {
-      console.error("Error fetching terrenos:", error)
-      setError("Error al cargar terrenos existentes: " + error.message)
-    }
-  }
 
   const handleTerrenoChange = (e) => {
     const { name, value } = e.target
@@ -181,9 +162,6 @@ const PropertyRegistry = () => {
   }
 
   const handleSubmit = async () => {
-    setIsLoading(true)
-    setError("")
-    setSuccess("")
     try {
       // 1. Registrar el terreno
       const newTerreno = {
@@ -197,7 +175,7 @@ const PropertyRegistry = () => {
       const terrenoResponse = await api.post("Terreno", { body: newTerreno })
 
       if (terrenoResponse.error) {
-        throw new Error(terrenoResponse.message || "Error al registrar el terreno")
+        throw new Error("Error al registrar el terreno")
       }
 
       // 2. Registrar en la tabla Dueños
@@ -210,13 +188,14 @@ const PropertyRegistry = () => {
         Fecha_Adquisicion: new Date().toISOString().split("T")[0],
       }
 
-      const duenoResponse = await api.post("Duenos", { body: duenoData })
+      const duenoResponse = await api.post("Dueños", { body: duenoData })
 
       if (duenoResponse.error) {
-        throw new Error(duenoResponse.message || "Error al registrar el dueño")
+        throw new Error("Error al registrar el dueño")
       }
 
       setSuccess("Terreno registrado exitosamente!")
+      setError("")
 
       // Reset form
       setTerrenoData({
@@ -229,18 +208,41 @@ const PropertyRegistry = () => {
         Colindancias_Sur: "",
         Colindancias_Este: "",
         Colindancias_Oeste: "",
-        Superficie: "",
-        Ubicacion: "",
-        Direccion: "",
       })
       setLotes([])
     } catch (error) {
       console.error("Error registering terreno:", error)
       setError("Error al registrar el terreno: " + error.message)
-    } finally {
-      setIsLoading(false)
+      setSuccess("")
     }
   }
+
+  useEffect(() => {
+    const fetchTerrenos = async () => {
+      try {
+        const data = await api.get("Terreno")
+        if (data.error) {
+          throw new Error(data.statusText)
+        }
+        // You can use this data to display existing terrenos or for validation
+        console.log("Existing terrenos:", data)
+      } catch (error) {
+        console.error("Error fetching terrenos:", error)
+        setError("Error al cargar terrenos existentes: " + error.message)
+      }
+    }
+
+    fetchTerrenos()
+  }, [])
+
+  useEffect(() => {
+    const userString = localStorage.getItem("currentUser")
+    if (userString) {
+      setCurrentUser(JSON.parse(userString))
+    } else {
+      navigate("/login")
+    }
+  }, [navigate])
 
   return (
     <CRow>
@@ -260,38 +262,6 @@ const PropertyRegistry = () => {
                     id="ID_Terreno"
                     name="ID_Terreno"
                     value={terrenoData.ID_Terreno}
-                    onChange={handleTerrenoChange}
-                    required
-                  />
-                </CCol>
-                <CCol md={6}>
-                  <CFormLabel htmlFor="Superficie">Superficie</CFormLabel>
-                  <CFormInput
-                    id="Superficie"
-                    name="Superficie"
-                    value={terrenoData.Superficie}
-                    onChange={handleTerrenoChange}
-                    required
-                  />
-                </CCol>
-              </CRow>
-              <CRow className="mb-3">
-                <CCol md={6}>
-                  <CFormLabel htmlFor="Ubicacion">Ubicación</CFormLabel>
-                  <CFormInput
-                    id="Ubicacion"
-                    name="Ubicacion"
-                    value={terrenoData.Ubicacion}
-                    onChange={handleTerrenoChange}
-                    required
-                  />
-                </CCol>
-                <CCol md={6}>
-                  <CFormLabel htmlFor="Direccion">Dirección</CFormLabel>
-                  <CFormInput
-                    id="Direccion"
-                    name="Direccion"
-                    value={terrenoData.Direccion}
                     onChange={handleTerrenoChange}
                     required
                   />
@@ -391,7 +361,7 @@ const PropertyRegistry = () => {
             <CRow className="mb-3">
               <CCol md={6}>
                 <CFormLabel htmlFor="ID_Lote">ID del Lote</CFormLabel>
-                <CFormInput id="ID_Lote" name="ID_Lote" value={loteData.ID_Lote} onChange={handleLoteChange} required />
+                <CFormInput id="ID_Lote" name="ID_Lote" value={loteData.ID_Lote} onChange={handleLoteChange} />
               </CCol>
               <CCol md={6}>
                 <CFormLabel htmlFor="Fecha_Registro">Fecha de Registro</CFormLabel>
@@ -401,7 +371,6 @@ const PropertyRegistry = () => {
                   type="date"
                   value={loteData.Fecha_Registro}
                   onChange={handleLoteChange}
-                  required
                 />
               </CCol>
             </CRow>
@@ -413,7 +382,6 @@ const PropertyRegistry = () => {
                   name="Medidas_Lote_Norte"
                   value={loteData.Medidas_Lote_Norte}
                   onChange={handleLoteChange}
-                  required
                 />
               </CCol>
               <CCol md={6}>
@@ -423,7 +391,6 @@ const PropertyRegistry = () => {
                   name="Medidas_Lote_Sur"
                   value={loteData.Medidas_Lote_Sur}
                   onChange={handleLoteChange}
-                  required
                 />
               </CCol>
             </CRow>
@@ -435,7 +402,6 @@ const PropertyRegistry = () => {
                   name="Medidas_Lote_Este"
                   value={loteData.Medidas_Lote_Este}
                   onChange={handleLoteChange}
-                  required
                 />
               </CCol>
               <CCol md={6}>
@@ -445,7 +411,6 @@ const PropertyRegistry = () => {
                   name="Medidas_Lote_Oeste"
                   value={loteData.Medidas_Lote_Oeste}
                   onChange={handleLoteChange}
-                  required
                 />
               </CCol>
             </CRow>
@@ -503,11 +468,11 @@ const PropertyRegistry = () => {
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModalLoteVisible(false)}>
-            Cancelar
-          </CButton>
           <CButton color="primary" onClick={addLote}>
             Guardar Lote
+          </CButton>
+          <CButton color="secondary" onClick={() => setModalLoteVisible(false)}>
+            Cancelar
           </CButton>
         </CModalFooter>
       </CModal>
@@ -527,7 +492,6 @@ const PropertyRegistry = () => {
                   name="ID_Vivienda"
                   value={viviendaData.ID_Vivienda}
                   onChange={handleViviendaChange}
-                  required
                 />
               </CCol>
               <CCol md={4}>
@@ -544,15 +508,235 @@ const PropertyRegistry = () => {
                 />
               </CCol>
             </CRow>
-            {/* Add more rows for other vivienda fields */}
+            <CRow className="mb-3">
+              <CCol md={4}>
+                <CFormLabel htmlFor="Area_Construccion">Área de Construcción</CFormLabel>
+                <CFormInput
+                  id="Area_Construccion"
+                  name="Area_Construccion"
+                  value={viviendaData.Area_Construccion}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Habitaciones">Habitaciones</CFormLabel>
+                <CFormInput
+                  id="Cant_Habitaciones"
+                  name="Cant_Habitaciones"
+                  type="number"
+                  value={viviendaData.Cant_Habitaciones}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Cocinas">Cocinas</CFormLabel>
+                <CFormInput
+                  id="Cant_Cocinas"
+                  name="Cant_Cocinas"
+                  type="number"
+                  value={viviendaData.Cant_Cocinas}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Baños">Baños</CFormLabel>
+                <CFormInput
+                  id="Cant_Baños"
+                  name="Cant_Baños"
+                  type="number"
+                  value={viviendaData.Cant_Baños}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Area_Servicios">Áreas de Servicio</CFormLabel>
+                <CFormInput
+                  id="Cant_Area_Servicios"
+                  name="Cant_Area_Servicios"
+                  type="number"
+                  value={viviendaData.Cant_Area_Servicios}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Sala_Estar">Salas de Estar</CFormLabel>
+                <CFormInput
+                  id="Cant_Sala_Estar"
+                  name="Cant_Sala_Estar"
+                  type="number"
+                  value={viviendaData.Cant_Sala_Estar}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Comedor">Comedores</CFormLabel>
+                <CFormInput
+                  id="Cant_Comedor"
+                  name="Cant_Comedor"
+                  type="number"
+                  value={viviendaData.Cant_Comedor}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Garage">Garajes</CFormLabel>
+                <CFormInput
+                  id="Cant_Garage"
+                  name="Cant_Garage"
+                  type="number"
+                  value={viviendaData.Cant_Garage}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+              <CCol md={4}>
+                <CFormLabel htmlFor="Cant_Oficina">Oficinas</CFormLabel>
+                <CFormInput
+                  id="Cant_Oficina"
+                  name="Cant_Oficina"
+                  type="number"
+                  value={viviendaData.Cant_Oficina}
+                  onChange={handleViviendaChange}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Piso">Descripción del Piso</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Piso"
+                  name="Descripcion_Piso"
+                  value={viviendaData.Descripcion_Piso}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Paredes">Descripción de las Paredes</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Paredes"
+                  name="Descripcion_Paredes"
+                  value={viviendaData.Descripcion_Paredes}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Techo">Descripción del Techo</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Techo"
+                  name="Descripcion_Techo"
+                  value={viviendaData.Descripcion_Techo}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Estructura">Descripción de la Estructura</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Estructura"
+                  name="Descripcion_Estructura"
+                  value={viviendaData.Descripcion_Estructura}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Tuberia">Descripción de la Tubería</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Tuberia"
+                  name="Descripcion_Tuberia"
+                  value={viviendaData.Descripcion_Tuberia}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Puertas">Descripción de las Puertas</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Puertas"
+                  name="Descripcion_Puertas"
+                  value={viviendaData.Descripcion_Puertas}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Ventanas">Descripción de las Ventanas</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Ventanas"
+                  name="Descripcion_Ventanas"
+                  value={viviendaData.Descripcion_Ventanas}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Instalacion_Electrica">
+                  Descripción de la Instalación Eléctrica
+                </CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Instalacion_Electrica"
+                  name="Descripcion_Instalacion_Electrica"
+                  value={viviendaData.Descripcion_Instalacion_Electrica}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Instalacion_Sanitaria">
+                  Descripción de la Instalación Sanitaria
+                </CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Instalacion_Sanitaria"
+                  name="Descripcion_Instalacion_Sanitaria"
+                  value={viviendaData.Descripcion_Instalacion_Sanitaria}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+              <CCol md={6}>
+                <CFormLabel htmlFor="Descripcion_Acabados">Descripción de los Acabados</CFormLabel>
+                <CFormTextarea
+                  id="Descripcion_Acabados"
+                  name="Descripcion_Acabados"
+                  value={viviendaData.Descripcion_Acabados}
+                  onChange={handleViviendaChange}
+                  rows={3}
+                />
+              </CCol>
+            </CRow>
+            <CRow className="mb-3">
+              <CCol md={12}>
+                <CFormLabel htmlFor="Observaciones_Adicionales">Observaciones Adicionales</CFormLabel>
+                <CFormTextarea
+                  id="Observaciones_Adicionales"
+                  name="Observaciones_Adicionales"
+                  value={viviendaData.Observaciones_Adicionales}
+                  onChange={handleViviendaChange}
+                  rows={4}
+                />
+              </CCol>
+            </CRow>
           </CForm>
         </CModalBody>
         <CModalFooter>
-          <CButton color="secondary" onClick={() => setModalViviendaVisible(false)}>
-            Cancelar
-          </CButton>
           <CButton color="primary" onClick={addVivienda}>
             Guardar Vivienda
+          </CButton>
+          <CButton color="secondary" onClick={() => setModalViviendaVisible(false)}>
+            Cancelar
           </CButton>
         </CModalFooter>
       </CModal>
@@ -605,8 +789,8 @@ const PropertyRegistry = () => {
       </CCol>
 
       <CCol xs={12} className="mt-3">
-        <CButton color="success" onClick={handleSubmit} disabled={isLoading}>
-          {isLoading ? <CSpinner size="sm" /> : "Registrar Terreno"}
+        <CButton color="success" onClick={handleSubmit}>
+          Registrar Terreno
         </CButton>
       </CCol>
     </CRow>
