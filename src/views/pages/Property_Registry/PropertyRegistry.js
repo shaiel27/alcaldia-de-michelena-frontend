@@ -22,6 +22,8 @@ import { useNavigate } from "react-router-dom"
 
 const PropertyRegistry = () => {
   const api = helpFetch()
+  const navigate = useNavigate()
+
   const [terrenoData, setTerrenoData] = useState({
     ID_Terreno: "",
     Medidas_Norte: "",
@@ -78,7 +80,6 @@ const PropertyRegistry = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [currentUser, setCurrentUser] = useState(null)
-  const navigate = useNavigate()
 
   useEffect(() => {
     const userString = localStorage.getItem("currentUser")
@@ -87,7 +88,10 @@ const PropertyRegistry = () => {
     } else {
       navigate("/login")
     }
+    fetchUserProperties()
   }, [navigate])
+
+  
 
   const handleTerrenoChange = (e) => {
     const { name, value } = e.target
@@ -175,7 +179,7 @@ const PropertyRegistry = () => {
       const terrenoResponse = await api.post("Terreno", { body: newTerreno })
 
       if (terrenoResponse.error) {
-        throw new Error("Error al registrar el terreno")
+        throw new Error(terrenoResponse.statusText || "Error al registrar el terreno")
       }
 
       // 2. Registrar en la tabla Dueños
@@ -191,7 +195,7 @@ const PropertyRegistry = () => {
       const duenoResponse = await api.post("Dueños", { body: duenoData })
 
       if (duenoResponse.error) {
-        throw new Error("Error al registrar el dueño")
+        throw new Error(duenoResponse.statusText || "Error al registrar el dueño")
       }
 
       setSuccess("Terreno registrado exitosamente!")
@@ -224,7 +228,6 @@ const PropertyRegistry = () => {
         if (data.error) {
           throw new Error(data.statusText)
         }
-        // You can use this data to display existing terrenos or for validation
         console.log("Existing terrenos:", data)
       } catch (error) {
         console.error("Error fetching terrenos:", error)
@@ -234,15 +237,6 @@ const PropertyRegistry = () => {
 
     fetchTerrenos()
   }, [])
-
-  useEffect(() => {
-    const userString = localStorage.getItem("currentUser")
-    if (userString) {
-      setCurrentUser(JSON.parse(userString))
-    } else {
-      navigate("/login")
-    }
-  }, [navigate])
 
   return (
     <CRow>
@@ -753,8 +747,7 @@ const PropertyRegistry = () => {
                   <h6>Lote {index + 1}</h6>
                   <p>ID: {lote.ID_Lote}</p>
                   <p>
-                    Medidas: N {lote.Medidas_Lote_Norte}, S {lote.Medidas_Lote_Sur}, E {lote.Medidas_Lote_Este}, O{" "}
-                    {lote.Medidas_Lote_Oeste}
+                    Medidas: N {lote.Medidas_Lote_Norte}, S {lote.Medidas_Lote_Sur}, E {lote.Medidas_Lote_Este}, O {lote.Medidas_Lote_Oeste}
                   </p>
                   <p>Fecha de Registro: {lote.Fecha_Registro}</p>
                   <h6>Viviendas:</h6>
@@ -798,4 +791,3 @@ const PropertyRegistry = () => {
 }
 
 export default PropertyRegistry
-

@@ -295,6 +295,19 @@
           ]
         }
       ]
+    },
+    {
+      "id": "ac52",
+      "ID_Terreno": "121",
+      "Medidas_Norte": "12",
+      "Medidas_Sur": "12",
+      "Medidas_Este": "12",
+      "Medidas_Oeste": "12",
+      "Colindancias_Norte": "12",
+      "Colindancias_Sur": "12",
+      "Colindancias_Este": "12",
+      "Colindancias_Oeste": "12",
+      "Lote": []
     }
   ],
   "Lote": [
@@ -393,6 +406,15 @@
       "Porcentaje_de_Propiedad": "100%",
       "Fecha_Tramite": "2025-02-01",
       "Fecha_Adquisicion": "2025-02-01"
+    },
+    {
+      "id": "9037",
+      "Cedula": "V87654321",
+      "ID_Terreno": "121",
+      "Status": "Activo",
+      "Porcentaje_de_Propiedad": "100%",
+      "Fecha_Tramite": "2025-02-02",
+      "Fecha_Adquisicion": "2025-02-02"
     }
   ],
   "Talonario": [
