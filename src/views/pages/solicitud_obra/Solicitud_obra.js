@@ -62,8 +62,8 @@ const ConstructionRequestForm = () => {
   const fetchUserProperties = async (cedula) => {
     setLoading(true)
     try {
-      // Primero obtenemos los registros de Dueños que corresponden a la cédula del usuario
-      const duenosData = await api.get(`Dueños?Cedula=${cedula}&Status=Activo`)
+      // Primero obtenemos los registros de Duenos que corresponden a la cédula del usuario
+      const duenosData = await api.get(`Duenos?Cedula=${cedula}&Status=Activo`)
 
       if (!duenosData || duenosData.error || duenosData.length === 0) {
         setError("No se encontraron propiedades para este usuario.")

@@ -46,7 +46,7 @@ const UserTramitesProperties = () => {
         throw new Error("User not found")
       }
 
-      const duenosResponse = await api.get(`Dueños?Cedula=${user.Cedula}&Status=Activo`)
+      const duenosResponse = await api.get(`Duenos?Cedula=${user.Cedula}&Status=Activo`)
       if (!duenosResponse || duenosResponse.error) {
         throw new Error("Error fetching user properties")
       }
