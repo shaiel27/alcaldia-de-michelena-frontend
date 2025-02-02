@@ -50,7 +50,7 @@ const UserProperties = () => {
   const fetchUserProperties = async (cedula) => {
     try {
       setLoading(true)
-      const duenosResponse = await api.get(`Dueños?Cedula=${cedula}&Status=Activo`)
+      const duenosResponse = await api.get(`Duenos?Cedula=${cedula}&Status=Activo`)
 
       if (!duenosResponse || duenosResponse.error || duenosResponse.length === 0) {
         setProperties([])

@@ -121,7 +121,6 @@ const PropertyRegistry = () => {
     })
     setModalLoteVisible(false)
   }
-
   const addVivienda = () => {
     const lotesActualizados = lotes.map((lote, index) => {
       if (index === loteActual) {
@@ -178,7 +177,7 @@ const PropertyRegistry = () => {
         throw new Error("Error al registrar el terreno")
       }
 
-      // 2. Registrar en la tabla Dueños
+      // 2. Registrar en la tabla Duenos
       const duenoData = {
         Cedula: currentUser.Cedula,
         ID_Terreno: terrenoResponse.ID_Terreno,
@@ -188,7 +187,7 @@ const PropertyRegistry = () => {
         Fecha_Adquisicion: new Date().toISOString().split("T")[0],
       }
 
-      const duenoResponse = await api.post("Dueños", { body: duenoData })
+      const duenoResponse = await api.post("Duenos", { body: duenoData })
 
       if (duenoResponse.error) {
         throw new Error("Error al registrar el dueño")

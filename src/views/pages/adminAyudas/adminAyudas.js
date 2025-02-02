@@ -33,7 +33,6 @@ const AdminRevisarSolicitudesAyuda = () => {
   useEffect(() => {
     fetchSolicitudes()
   }, [])
-
   const fetchSolicitudes = async () => {
     setIsLoading(true)
     try {
