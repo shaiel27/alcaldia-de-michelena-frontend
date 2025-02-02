@@ -1,5 +1,5 @@
 export const helpFetch = () => {
-  const URL = "https://json-alcaldia.onrender.com";
+  const URL = "https://json-alcaldia-1.onrender.com/";
 
   const customFetch = (endpoint, options = {}) => {
       options.method = options.method || "GET";
