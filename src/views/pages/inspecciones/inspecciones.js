@@ -1,4 +1,6 @@
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import {
   CCard,
   CCardBody,
@@ -22,58 +24,19 @@ import {
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CSpinner,
+  CAlert,
+  CFormTextarea,
 } from "@coreui/react"
 import { CChartDoughnut, CChartBar } from "@coreui/react-chartjs"
+import { helpFetch } from "../../../api/helpfetch"
 
 const GestionInspeccionesIngenieria = () => {
-  const [inspecciones, setInspecciones] = useState([
-    {
-      id: 1,
-      fecha: "2025-01-15",
-      tipo: "Construcción",
-      direccion: "Calle Principal #123",
-      inspector: "Juan Pérez",
-      estado: "Completada",
-      resultado: "Aprobada",
-    },
-    {
-      id: 2,
-      fecha: "2025-01-18",
-      tipo: "Remodelación",
-      direccion: "Av. Central #456",
-      inspector: "María Gómez",
-      estado: "Pendiente",
-      resultado: "Pendiente",
-    },
-    {
-      id: 3,
-      fecha: "2025-01-20",
-      tipo: "Demolición",
-      direccion: "Carrera 7 #789",
-      inspector: "Carlos Rodríguez",
-      estado: "En Proceso",
-      resultado: "Pendiente",
-    },
-    {
-      id: 4,
-      fecha: "2025-01-22",
-      tipo: "Construcción",
-      direccion: "Calle 10 #234",
-      inspector: "Ana Martínez",
-      estado: "Completada",
-      resultado: "Rechazada",
-    },
-    {
-      id: 5,
-      fecha: "2025-01-25",
-      tipo: "Remodelación",
-      direccion: "Av. Libertador #567",
-      inspector: "Juan Pérez",
-      estado: "Completada",
-      resultado: "Aprobada",
-    },
-  ])
-
+  const [inspecciones, setInspecciones] = useState([])
+  const [empleados, setEmpleados] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [nuevaInspeccion, setNuevaInspeccion] = useState({
     fecha: "",
@@ -82,19 +45,92 @@ const GestionInspeccionesIngenieria = () => {
     inspector: "",
     estado: "Pendiente",
     resultado: "Pendiente",
+    descripcion: "",
   })
 
-  const handleNuevaInspeccion = () => {
-    setInspecciones([...inspecciones, { ...nuevaInspeccion, id: inspecciones.length + 1 }])
-    setShowModal(false)
-    setNuevaInspeccion({
-      fecha: "",
-      tipo: "Construcción",
-      direccion: "",
-      inspector: "",
-      estado: "Pendiente",
-      resultado: "Pendiente",
-    })
+  const api = helpFetch()
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [inspeccionesData, empleadosData] = await Promise.all([api.get("Inspeccion"), api.get("Empleado")])
+
+      if (inspeccionesData && !inspeccionesData.error) {
+        // Transform inspections data to match component structure
+        const transformedInspecciones = inspeccionesData.map((insp) => ({
+          id: insp.ID_Inspeccion,
+          fecha: insp.Fecha_Inspeccion,
+          tipo: insp.Descripcion_Problematica?.includes("Construcción")
+            ? "Construcción"
+            : insp.Descripcion_Problematica?.includes("Remodelación")
+              ? "Remodelación"
+              : insp.Descripcion_Problematica?.includes("Demolición")
+                ? "Demolición"
+                : "Otros",
+          direccion: `Inspección ${insp.ID_Inspeccion}`,
+          inspector: insp.Inspector || "No asignado",
+          estado: insp.Estado || "Pendiente",
+          resultado: insp.Estado === "Completada" ? "Aprobada" : "Pendiente",
+          descripcion: insp.Descripcion_Problematica || "",
+        }))
+        setInspecciones(transformedInspecciones)
+      }
+
+      if (empleadosData && !empleadosData.error) {
+        setEmpleados(empleadosData)
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err)
+      setError("Error al cargar los datos")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleNuevaInspeccion = async () => {
+    try {
+      setLoading(true)
+
+      // Get next ID
+      const nextId = Math.max(...inspecciones.map((i) => Number.parseInt(i.id) || 0), 0) + 1
+
+      const nuevaInspeccionData = {
+        ID_Inspeccion: nextId.toString(),
+        Fecha_Inspeccion: nuevaInspeccion.fecha,
+        Descripcion_Problematica: `${nuevaInspeccion.tipo}: ${nuevaInspeccion.descripcion}`,
+        Estado: nuevaInspeccion.estado,
+        Inspector: nuevaInspeccion.inspector,
+        Detalle: "1", // Default detail reference
+      }
+
+      const response = await api.post("Inspeccion", { body: nuevaInspeccionData })
+
+      if (response && !response.error) {
+        setSuccess("Inspección registrada exitosamente")
+        setShowModal(false)
+        setNuevaInspeccion({
+          fecha: "",
+          tipo: "Construcción",
+          direccion: "",
+          inspector: "",
+          estado: "Pendiente",
+          resultado: "Pendiente",
+          descripcion: "",
+        })
+        fetchData() // Refresh data
+      } else {
+        throw new Error("Error al registrar la inspección")
+      }
+    } catch (err) {
+      console.error("Error creating inspection:", err)
+      setError("Error al registrar la inspección")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const getStatusColor = (estado) => {
@@ -153,6 +189,14 @@ const GestionInspeccionesIngenieria = () => {
     ],
   }
 
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "400px" }}>
+        <CSpinner color="primary" />
+      </div>
+    )
+  }
+
   return (
     <CRow>
       <CCol xs={12}>
@@ -161,6 +205,9 @@ const GestionInspeccionesIngenieria = () => {
             <h2>Gestión de Inspecciones - Departamento de Ingeniería</h2>
           </CCardHeader>
           <CCardBody>
+            {error && <CAlert color="danger">{error}</CAlert>}
+            {success && <CAlert color="success">{success}</CAlert>}
+
             <CRow>
               <CCol md={6}>
                 <h4>Inspecciones por Tipo</h4>
@@ -270,11 +317,17 @@ const GestionInspeccionesIngenieria = () => {
             </div>
             <div className="mb-3">
               <CFormLabel>Inspector</CFormLabel>
-              <CFormInput
-                type="text"
+              <CFormSelect
                 value={nuevaInspeccion.inspector}
                 onChange={(e) => setNuevaInspeccion({ ...nuevaInspeccion, inspector: e.target.value })}
-              />
+              >
+                <option value="">Seleccionar Inspector</option>
+                {empleados.map((empleado) => (
+                  <option key={empleado.ID_Empleado} value={`${empleado.Nombre} ${empleado.Apellido}`}>
+                    {empleado.Nombre} {empleado.Apellido}
+                  </option>
+                ))}
+              </CFormSelect>
             </div>
             <div className="mb-3">
               <CFormLabel>Estado</CFormLabel>
@@ -288,15 +341,13 @@ const GestionInspeccionesIngenieria = () => {
               </CFormSelect>
             </div>
             <div className="mb-3">
-              <CFormLabel>Resultado</CFormLabel>
-              <CFormSelect
-                value={nuevaInspeccion.resultado}
-                onChange={(e) => setNuevaInspeccion({ ...nuevaInspeccion, resultado: e.target.value })}
-              >
-                <option value="Pendiente">Pendiente</option>
-                <option value="Aprobada">Aprobada</option>
-                <option value="Rechazada">Rechazada</option>
-              </CFormSelect>
+              <CFormLabel>Descripción</CFormLabel>
+              <CFormTextarea
+                rows={3}
+                value={nuevaInspeccion.descripcion}
+                onChange={(e) => setNuevaInspeccion({ ...nuevaInspeccion, descripcion: e.target.value })}
+                placeholder="Descripción de la inspección"
+              />
             </div>
           </CForm>
         </CModalBody>
@@ -304,8 +355,8 @@ const GestionInspeccionesIngenieria = () => {
           <CButton color="secondary" onClick={() => setShowModal(false)}>
             Cancelar
           </CButton>
-          <CButton color="primary" onClick={handleNuevaInspeccion}>
-            Guardar Inspección
+          <CButton color="primary" onClick={handleNuevaInspeccion} disabled={loading}>
+            {loading ? <CSpinner size="sm" /> : "Guardar Inspección"}
           </CButton>
         </CModalFooter>
       </CModal>
@@ -314,4 +365,3 @@ const GestionInspeccionesIngenieria = () => {
 }
 
 export default GestionInspeccionesIngenieria
-

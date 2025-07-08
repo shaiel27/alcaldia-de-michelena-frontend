@@ -1,3 +1,5 @@
+"use client"
+
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
@@ -12,6 +14,7 @@ import {
   CInputGroupText,
   CRow,
   CAlert,
+  CSpinner,
 } from "@coreui/react"
 import CIcon from "@coreui/icons-react"
 import { cilUser, cilLockLocked, cilEnvelopeClosed, cilLocationPin } from "@coreui/icons"
@@ -28,9 +31,10 @@ const Register = () => {
     confirmPassword: "",
   })
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
-  const { get, post } = helpFetch()
+  const api = helpFetch()
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -40,50 +44,107 @@ const Register = () => {
     }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+  const validateForm = () => {
+    if (
+      !formData.cedula ||
+      !formData.nombre ||
+      !formData.apellido ||
+      !formData.direccion ||
+      !formData.correo ||
+      !formData.password
+    ) {
+      setError("Todos los campos son obligatorios")
+      return false
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden")
-      setIsLoading(false)
+      return false
+    }
+
+    if (formData.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres")
+      return false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.correo)) {
+      setError("Por favor ingrese un correo electrónico válido")
+      return false
+    }
+
+    return true
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!validateForm()) {
       return
     }
 
+    setIsLoading(true)
+    setError("")
+    setSuccess("")
+
     try {
-      const response = await get("Usuario")
-      if (response.error) throw new Error(response.statusText)
-      const users = response
+      // Verificar si ya existe un usuario con la misma cédula o correo
+      const existingUsers = await api.get("Usuarios")
+
+      if (existingUsers.err) {
+        throw new Error("Error al verificar usuarios existentes")
+      }
+
+      const users = existingUsers || []
 
       const cedulaExists = users.some((user) => user.Cedula === formData.cedula)
       if (cedulaExists) {
         setError("Ya existe un usuario con esta cédula")
-        setIsLoading(false)
         return
       }
 
       const emailExists = users.some((user) => user.Correo === formData.correo)
       if (emailExists) {
         setError("Ya existe un usuario con este correo electrónico")
-        setIsLoading(false)
         return
       }
 
+      // Crear nuevo usuario
       const newUser = {
         Cedula: formData.cedula,
         Nombre: formData.nombre,
         Apellido: formData.apellido,
         Direccion: formData.direccion,
         Correo: formData.correo,
-        Password: formData.password,
+        Contraseña: formData.password,
+        Fecha_Registro: new Date().toISOString().split("T")[0],
+        Estado: "Activo",
+        Rol: "Usuario",
       }
 
-      const registerResponse = await post("Usuario", { body: newUser })
-      if (registerResponse.error) throw new Error(registerResponse.statusText)
+      const registerResponse = await api.post("Usuarios", { body: newUser })
 
-      console.log("Usuario registrado exitosamente")
-      navigate("/login")
+      if (registerResponse.err) {
+        throw new Error(registerResponse.err)
+      }
+
+      setSuccess("Usuario registrado exitosamente. Redirigiendo al login...")
+
+      // Limpiar formulario
+      setFormData({
+        cedula: "",
+        nombre: "",
+        apellido: "",
+        direccion: "",
+        correo: "",
+        password: "",
+        confirmPassword: "",
+      })
+
+      // Redirigir después de 2 segundos
+      setTimeout(() => {
+        navigate("/login")
+      }, 2000)
     } catch (error) {
       console.error("Error:", error)
       setError("Ocurrió un error durante el registro. Por favor, intente de nuevo.")
@@ -97,16 +158,19 @@ const Register = () => {
       <CContainer>
         <CRow className="justify-content-center">
           <CCol md={12} lg={10} xl={8}>
-            <CCard className="mx-4 bg-distortion">
+            <CCard className="mx-4">
               <CCardBody className="p-4">
                 <CForm onSubmit={handleSubmit}>
                   <h1 className="mb-4 text-center">Registro</h1>
                   <p className="text-medium-emphasis text-center mb-4">Crea tu cuenta</p>
+
                   {error && <CAlert color="danger">{error}</CAlert>}
+                  {success && <CAlert color="success">{success}</CAlert>}
+
                   <CRow>
                     <CCol md={6}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilUser} />
                         </CInputGroupText>
                         <CFormInput
@@ -115,13 +179,12 @@ const Register = () => {
                           value={formData.cedula}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
                     <CCol md={6}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilUser} />
                         </CInputGroupText>
                         <CFormInput
@@ -130,7 +193,6 @@ const Register = () => {
                           value={formData.nombre}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
@@ -138,7 +200,7 @@ const Register = () => {
                   <CRow>
                     <CCol md={6}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilUser} />
                         </CInputGroupText>
                         <CFormInput
@@ -147,13 +209,12 @@ const Register = () => {
                           value={formData.apellido}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
                     <CCol md={6}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilEnvelopeClosed} />
                         </CInputGroupText>
                         <CFormInput
@@ -163,7 +224,6 @@ const Register = () => {
                           value={formData.correo}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
@@ -171,7 +231,7 @@ const Register = () => {
                   <CRow>
                     <CCol md={12}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilLocationPin} />
                         </CInputGroupText>
                         <CFormInput
@@ -180,7 +240,6 @@ const Register = () => {
                           value={formData.direccion}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
@@ -188,7 +247,7 @@ const Register = () => {
                   <CRow>
                     <CCol md={6}>
                       <CInputGroup className="mb-3">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilLockLocked} />
                         </CInputGroupText>
                         <CFormInput
@@ -198,13 +257,12 @@ const Register = () => {
                           value={formData.password}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
                     <CCol md={6}>
                       <CInputGroup className="mb-4">
-                        <CInputGroupText className="bg-distortion">
+                        <CInputGroupText>
                           <CIcon icon={cilLockLocked} />
                         </CInputGroupText>
                         <CFormInput
@@ -214,7 +272,6 @@ const Register = () => {
                           value={formData.confirmPassword}
                           onChange={handleChange}
                           required
-                          className="bg-distortion"
                         />
                       </CInputGroup>
                     </CCol>
@@ -223,7 +280,14 @@ const Register = () => {
                     <CCol xs={12}>
                       <div className="d-grid">
                         <CButton color="success" type="submit" disabled={isLoading}>
-                          {isLoading ? "Registrando..." : "Crear Cuenta"}
+                          {isLoading ? (
+                            <>
+                              <CSpinner size="sm" className="me-2" />
+                              Registrando...
+                            </>
+                          ) : (
+                            "Crear Cuenta"
+                          )}
                         </CButton>
                       </div>
                     </CCol>
@@ -239,4 +303,3 @@ const Register = () => {
 }
 
 export default Register
-

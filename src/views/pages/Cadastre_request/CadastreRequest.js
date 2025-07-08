@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import {
   CButton,
   CCard,
@@ -15,32 +17,50 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CAlert,
+  CSpinner,
+  CBadge,
 } from "@coreui/react"
 import { helpFetch } from "../../../api/helpfetch"
 
-
-
-const ConstanciasCatastrales = () => {
-
-  
+const CadastreRequest = () => {
   const [formData, setFormData] = useState({
     cedula: "",
     idTerreno: "",
   })
   const [constancias, setConstancias] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [currentUser, setCurrentUser] = useState(null)
   const api = helpFetch()
 
   useEffect(() => {
+    const userString = localStorage.getItem("currentUser")
+    if (userString) {
+      const user = JSON.parse(userString)
+      setCurrentUser(user)
+      setFormData((prev) => ({
+        ...prev,
+        cedula: user.Cedula,
+      }))
+    }
     fetchConstancias()
   }, [])
 
   const fetchConstancias = async () => {
     try {
-      const data = await api.get("constancias")
+      setLoading(true)
+      const data = await api.get("Constancias")
+      if (data.err) {
+        throw new Error(data.err)
+      }
       setConstancias(data || [])
     } catch (error) {
       console.error("Error fetching constancias:", error)
+      setError("Error al cargar las constancias")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -54,24 +74,56 @@ const ConstanciasCatastrales = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!formData.cedula || !formData.idTerreno) {
+      setError("Por favor complete todos los campos")
+      return
+    }
+
     setLoading(true)
+    setError("")
+    setSuccess("")
+
     try {
-      await api.post("constancias", {
-        body: {
-          ...formData,
-          fecha: new Date().toISOString(),
-          estado: "Pendiente",
-        },
-      })
+      const constanciaData = {
+        cedula: formData.cedula,
+        idTerreno: formData.idTerreno,
+        fecha: new Date().toISOString(),
+        estado: "Pendiente",
+        fechaSolicitud: new Date().toISOString().split("T")[0],
+        tipo: "Catastral",
+      }
+
+      const response = await api.post("Constancias", { body: constanciaData })
+
+      if (response.err) {
+        throw new Error(response.err)
+      }
+
+      setSuccess("Solicitud de constancia catastral enviada exitosamente")
       setFormData({
-        cedula: "",
+        cedula: currentUser?.Cedula || "",
         idTerreno: "",
       })
-      fetchConstancias()
+      await fetchConstancias()
     } catch (error) {
       console.error("Error submitting constancia:", error)
+      setError("Error al enviar la solicitud: " + error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const getBadgeColor = (estado) => {
+    switch (estado?.toLowerCase()) {
+      case "aprobada":
+        return "success"
+      case "rechazada":
+        return "danger"
+      case "pendiente":
+        return "warning"
+      default:
+        return "primary"
     }
   }
 
@@ -83,6 +135,9 @@ const ConstanciasCatastrales = () => {
             <h5>Solicitud de Constancias Catastrales</h5>
           </CCardHeader>
           <CCardBody>
+            {error && <CAlert color="danger">{error}</CAlert>}
+            {success && <CAlert color="success">{success}</CAlert>}
+
             <CForm onSubmit={handleSubmit}>
               <CRow className="mb-3">
                 <CCol md={6}>
@@ -94,6 +149,7 @@ const ConstanciasCatastrales = () => {
                     onChange={handleInputChange}
                     placeholder="Ingrese la cédula"
                     required
+                    disabled={!!currentUser}
                   />
                 </CCol>
                 <CCol md={6}>
@@ -109,7 +165,14 @@ const ConstanciasCatastrales = () => {
                 </CCol>
               </CRow>
               <CButton type="submit" color="primary" disabled={loading}>
-                {loading ? "Enviando..." : "Solicitar Constancia"}
+                {loading ? (
+                  <>
+                    <CSpinner size="sm" className="me-2" />
+                    Enviando...
+                  </>
+                ) : (
+                  "Solicitar Constancia"
+                )}
               </CButton>
             </CForm>
           </CCardBody>
@@ -122,36 +185,48 @@ const ConstanciasCatastrales = () => {
             <h5>Historial de Constancias</h5>
           </CCardHeader>
           <CCardBody>
-            <CTable hover>
-              <CTableHead>
-                <CTableRow>
-                  <CTableHeaderCell>#</CTableHeaderCell>
-                  <CTableHeaderCell>Cédula</CTableHeaderCell>
-                  <CTableHeaderCell>ID Terreno</CTableHeaderCell>
-                  <CTableHeaderCell>Estado</CTableHeaderCell>
-                  <CTableHeaderCell>Fecha</CTableHeaderCell>
-                </CTableRow>
-              </CTableHead>
-              <CTableBody>
-                {constancias.length > 0 ? (
-                  constancias.map((constancia, index) => (
-                    <CTableRow key={constancia.id}>
-                      <CTableDataCell>{index + 1}</CTableDataCell>
-                      <CTableDataCell>{constancia.cedula}</CTableDataCell>
-                      <CTableDataCell>{constancia.idTerreno}</CTableDataCell>
-                      <CTableDataCell>{constancia.estado}</CTableDataCell>
-                      <CTableDataCell>{new Date(constancia.fecha).toLocaleDateString()}</CTableDataCell>
-                    </CTableRow>
-                  ))
-                ) : (
+            {loading && constancias.length === 0 ? (
+              <div className="text-center">
+                <CSpinner color="primary" />
+              </div>
+            ) : (
+              <CTable hover responsive>
+                <CTableHead>
                   <CTableRow>
-                    <CTableDataCell colSpan="5" className="text-center">
-                      No hay constancias registradas
-                    </CTableDataCell>
+                    <CTableHeaderCell>#</CTableHeaderCell>
+                    <CTableHeaderCell>Cédula</CTableHeaderCell>
+                    <CTableHeaderCell>ID Terreno</CTableHeaderCell>
+                    <CTableHeaderCell>Estado</CTableHeaderCell>
+                    <CTableHeaderCell>Fecha Solicitud</CTableHeaderCell>
                   </CTableRow>
-                )}
-              </CTableBody>
-            </CTable>
+                </CTableHead>
+                <CTableBody>
+                  {constancias.length > 0 ? (
+                    constancias.map((constancia, index) => (
+                      <CTableRow key={constancia.id || index}>
+                        <CTableDataCell>{index + 1}</CTableDataCell>
+                        <CTableDataCell>{constancia.cedula}</CTableDataCell>
+                        <CTableDataCell>{constancia.idTerreno}</CTableDataCell>
+                        <CTableDataCell>
+                          <CBadge color={getBadgeColor(constancia.estado)}>{constancia.estado || "Pendiente"}</CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell>
+                          {constancia.fechaSolicitud
+                            ? new Date(constancia.fechaSolicitud).toLocaleDateString()
+                            : new Date(constancia.fecha).toLocaleDateString()}
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))
+                  ) : (
+                    <CTableRow>
+                      <CTableDataCell colSpan="5" className="text-center">
+                        No hay constancias registradas
+                      </CTableDataCell>
+                    </CTableRow>
+                  )}
+                </CTableBody>
+              </CTable>
+            )}
           </CCardBody>
         </CCard>
       </CCol>
@@ -159,5 +234,4 @@ const ConstanciasCatastrales = () => {
   )
 }
 
-export default ConstanciasCatastrales
-
+export default CadastreRequest

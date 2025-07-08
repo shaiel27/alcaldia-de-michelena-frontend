@@ -36,6 +36,7 @@
     "core-js": "^3.38.1",
     "express": "^4.21.2",
     "jose": "^5.9.6",
+    "json-server": "^1.0.0-beta.3",
     "jsonwebtoken": "^9.0.2",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",

@@ -1,50 +1,63 @@
 export const helpFetch = () => {
-  const URL = "https://json-alcaldia-3.onrender.com/";
+  const api = (endpoint, options) => {
+    const url = `http://localhost:3004/${endpoint}`
 
-  const customFetch = (endpoint, options = {}) => {
-    options.method = options.method || "GET";
+    if (!options) {
+      options = {}
+    }
+
+    options.method = options.method || "GET"
     options.headers = {
       "content-type": "application/json",
       ...options.headers,
-    };
-
-    if (options.body) {
-      options.body = JSON.stringify(options.body);
     }
 
-    return fetch(`${URL}${endpoint}`, options)
-      .then(response => {
-        return response.ok 
-          ? response.json() 
-          : Promise.reject({
-              error: true,
-              status: response.status,
-              statusText: response.statusText
-            });
-      })
-      .catch(error => error);
-  };
+    if (options.body) {
+      options.body = JSON.stringify(options.body)
+    }
 
-  const get = (endpoint) => customFetch(endpoint);
+    return fetch(url, options)
+      .then((res) => {
+        if (res.ok) {
+          return res.json()
+        } else {
+          return Promise.reject({
+            err: true,
+            status: res.status || "00",
+            statusText: res.statusText || "Ocurrió un error",
+          })
+        }
+      })
+      .catch((err) => {
+        console.error("API Error:", err)
+        return {
+          err: true,
+          status: err.status || "00",
+          statusText: err.statusText || err.message || "Error de conexión",
+        }
+      })
+  }
+
+  const get = (endpoint) => api(endpoint)
 
   const post = (endpoint, options) => {
-    options.method = "POST";
-    return customFetch(endpoint, options);
-  };
+    options.method = "POST"
+    return api(endpoint, options)
+  }
 
   const put = (endpoint, options, id) => {
-    options.method = "PUT";
-    return customFetch(`${endpoint}/${id}`, options);
-  };
+    options.method = "PUT"
+    return api(`${endpoint}/${id}`, options)
+  }
 
   const del = (endpoint, id) => {
-    const options = {
-      method: "DELETE"
-    };
-    return customFetch(`${endpoint}/${id}`, options);
-  };
+    return api(`${endpoint}/${id}`, { method: "DELETE" })
+  }
 
-  return { get, post, put, del };
-};
-  "http://localhost:3004/"
-  
+  return {
+    get,
+    post,
+    put,
+    del,
+  }
+}

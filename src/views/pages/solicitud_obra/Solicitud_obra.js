@@ -1,46 +1,52 @@
-import React, { useState, useEffect } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   CCard,
   CCardBody,
   CCardHeader,
   CCol,
+  CRow,
   CForm,
   CFormInput,
   CFormLabel,
-  CFormTextarea,
   CFormSelect,
+  CFormTextarea,
   CButton,
-  CRow,
   CAlert,
   CSpinner,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableBody,
+  CTableDataCell,
+  CBadge,
 } from "@coreui/react"
 import { helpFetch } from "../../../api/helpfetch"
-import { useNavigate } from "react-router-dom"
 
-const ConstructionRequestForm = () => {
+const SolicitudObra = () => {
   const [formData, setFormData] = useState({
-    ID_Solicitud_de_obra: "",
-    Cedula: "",
-    ID_Vivienda: "",
-    ID_Terreno: "",
-    Fecha: new Date().toISOString().split("T")[0],
-    Descripcion: "",
-    Estatus: "Pendiente",
-    Observacion: "",
-    Ubicacion: "",
-    Tiempo_Obra: "",
-    Monto: "",
+    descripcion: "",
+    ubicacion: "",
+    monto: "",
+    tiempo_obra: "",
+    tipo_obra: "",
+    area_construccion: "",
+    numero_pisos: "1",
+    uso_destinado: "",
+    ingeniero_responsable: "",
+    materiales_principales: "",
+    impacto_ambiental: "Bajo",
+    contacto_emergencia: "",
   })
 
-  const [terrenos, setTerrenos] = useState([])
-  const [lotes, setLotes] = useState([])
-  const [viviendas, setViviendas] = useState([])
-  const [selectedTerreno, setSelectedTerreno] = useState(null)
-  const [selectedLote, setSelectedLote] = useState(null)
+  const [solicitudes, setSolicitudes] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const navigate = useNavigate()
   const api = helpFetch()
 
@@ -49,297 +55,390 @@ const ConstructionRequestForm = () => {
     if (userString) {
       const user = JSON.parse(userString)
       setCurrentUser(user)
-      setFormData((prevState) => ({
-        ...prevState,
-        Cedula: user.Cedula,
-      }))
-      fetchUserProperties(user.Cedula)
+      fetchUserSolicitudes(user.Cedula)
     } else {
       navigate("/login")
     }
   }, [navigate])
 
-  const fetchUserProperties = async (cedula) => {
-    setLoading(true)
+  const fetchUserSolicitudes = async (cedula) => {
     try {
-      // Primero obtenemos los registros de Duenos que corresponden a la cédula del usuario
-      const duenosData = await api.get(`Duenos?Cedula=${cedula}&Status=Activo`)
+      const response = await api.get("Solicitud_de_obra")
 
-      if (!duenosData || duenosData.error || duenosData.length === 0) {
-        setError("No se encontraron propiedades para este usuario.")
-        setTerrenos([])
+      if (response?.err) {
+        console.error("Error fetching solicitudes:", response)
+        setSolicitudes([])
         return
       }
 
-      // Obtenemos los IDs de los terrenos que pertenecen al usuario
-      const terrenoIds = duenosData.map((dueno) => dueno.ID_Terreno)
-
-      // Obtenemos los detalles de cada terreno
-      const terrenosData = []
-      for (const id of terrenoIds) {
-        const terreno = await api.get(`Terreno?ID_Terreno=${id}`)
-        if (terreno && !terreno.error && terreno.length > 0) {
-          terrenosData.push(terreno[0])
-        }
-      }
-
-      setTerrenos(terrenosData)
-    } catch (error) {
-      console.error("Error fetching user properties:", error)
-      setError("Error al cargar las propiedades. Por favor, intente de nuevo.")
-    } finally {
-      setLoading(false)
+      const safeSolicitudes = Array.isArray(response) ? response : []
+      const userSolicitudes = safeSolicitudes.filter((sol) => sol.Cedula === cedula)
+      setSolicitudes(userSolicitudes)
+    } catch (err) {
+      console.error("Error fetching solicitudes:", err)
+      setSolicitudes([])
     }
   }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData((prevState) => ({
-      ...prevState,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    }))
-  }
-
-  const handleTerrenoChange = (e) => {
-    const terrenoId = e.target.value
-    const terreno = terrenos.find((t) => t.ID_Terreno.toString() === terrenoId)
-    setSelectedTerreno(terreno)
-    setFormData((prevState) => ({
-      ...prevState,
-      ID_Terreno: terrenoId,
-      ID_Vivienda: "",
-    }))
-    setLotes(terreno?.Lote || [])
-    setViviendas([])
-    setSelectedLote(null)
-  }
-
-  const handleLoteChange = (e) => {
-    const loteId = e.target.value
-    const lote = lotes.find((l) => l.ID_Lote.toString() === loteId)
-    setSelectedLote(lote)
-    setViviendas(lote?.Vivienda || [])
-    setFormData((prevState) => ({
-      ...prevState,
-      ID_Vivienda: "",
     }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    try {
-      // Obtener el último ID de solicitud para incrementarlo
-      const solicitudes = await api.get("Solicitud_de_obra")
-      const lastId = Math.max(...solicitudes.map((s) => Number.parseInt(s.ID_Solicitud_de_obra) || 0), 0)
 
+    if (!currentUser) {
+      setError("Usuario no autenticado")
+      return
+    }
+
+    // Validación básica
+    if (!formData.descripcion || !formData.ubicacion || !formData.monto || !formData.tipo_obra) {
+      setError("Por favor complete todos los campos requeridos")
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
       const solicitudData = {
         ...formData,
-        ID_Solicitud_de_obra: (lastId + 1).toString(),
+        Cedula: currentUser.Cedula,
+        Fecha: new Date().toISOString().split("T")[0],
+        Estatus: "Pendiente",
+        Observacion: "Solicitud recibida, en proceso de evaluación",
+        Monto: Number.parseFloat(formData.monto),
+        Fecha_Inicio_Estimada: null,
+        Fecha_Fin_Estimada: null,
+        Fecha_Revision: null,
+        Revisado_Por: null,
       }
 
-      const response = await api.post("Solicitud_de_obra", {
-        body: solicitudData,
-      })
+      const response = await api.post("Solicitud_de_obra", { body: solicitudData })
 
-      if (response.error) {
+      if (response?.err) {
         throw new Error(response.statusText || "Error al enviar la solicitud")
       }
 
-      setSuccess("Solicitud enviada exitosamente")
+      setSuccess("Solicitud de obra enviada exitosamente")
       setFormData({
-        ...formData,
-        ID_Vivienda: "",
-        ID_Terreno: "",
-        Descripcion: "",
-        Observacion: "",
-        Ubicacion: "",
-        Tiempo_Obra: "",
-        Monto: "",
+        descripcion: "",
+        ubicacion: "",
+        monto: "",
+        tiempo_obra: "",
+        tipo_obra: "",
+        area_construccion: "",
+        numero_pisos: "1",
+        uso_destinado: "",
+        ingeniero_responsable: "",
+        materiales_principales: "",
+        impacto_ambiental: "Bajo",
+        contacto_emergencia: "",
       })
-      setSelectedTerreno(null)
-      setSelectedLote(null)
-      setViviendas([])
-    } catch (error) {
-      console.error("Error submitting request:", error)
-      setError("Error al enviar la solicitud. Por favor, intente de nuevo.")
+
+      // Recargar solicitudes
+      fetchUserSolicitudes(currentUser.Cedula)
+    } catch (err) {
+      console.error("Error submitting solicitud:", err)
+      setError("Error al enviar la solicitud. Por favor intente de nuevo.")
     } finally {
       setLoading(false)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="d-flex justify-content-center">
-        <CSpinner color="primary" />
-      </div>
-    )
+  const getStatusBadgeColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "aprobada":
+        return "success"
+      case "pendiente":
+        return "warning"
+      case "en proceso":
+        return "info"
+      case "rechazada":
+        return "danger"
+      default:
+        return "secondary"
+    }
   }
 
   return (
-    <CCard className="mb-4">
-      <CCardHeader>
-        <strong>Solicitud de Obra</strong>
-      </CCardHeader>
-      <CCardBody>
-        {error && <CAlert color="danger">{error}</CAlert>}
-        {success && <CAlert color="success">{success}</CAlert>}
-        <CForm onSubmit={handleSubmit}>
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel htmlFor="Cedula">Cédula</CFormLabel>
-              <CFormInput id="Cedula" name="Cedula" value={formData.Cedula} disabled />
-            </CCol>
-            <CCol md={6}>
-              <CFormLabel htmlFor="ID_Terreno">Terreno</CFormLabel>
-              <CFormSelect
-                id="ID_Terreno"
-                name="ID_Terreno"
-                value={formData.ID_Terreno}
-                onChange={handleTerrenoChange}
-                required
-              >
-                <option value="">Seleccione un terreno</option>
-                {terrenos.map((terreno) => (
-                  <option key={terreno.ID_Terreno} value={terreno.ID_Terreno}>
-                    Terreno {terreno.ID_Terreno} - {terreno.Ubicacion || "Sin ubicación"}
-                  </option>
-                ))}
-              </CFormSelect>
-            </CCol>
-          </CRow>
+    <CRow>
+      <CCol xs={12}>
+        <CCard className="mb-4">
+          <CCardHeader>
+            <h2>Solicitud de Obra</h2>
+          </CCardHeader>
+          <CCardBody>
+            {error && (
+              <CAlert color="danger" dismissible onClose={() => setError(null)}>
+                {error}
+              </CAlert>
+            )}
 
-          {selectedTerreno && (
-            <>
-              <CRow className="mb-3">
-                <CCol md={12}>
-                  <CFormLabel htmlFor="ID_Lote">Lote</CFormLabel>
-                  <CFormSelect id="ID_Lote" name="ID_Lote" onChange={handleLoteChange} required>
-                    <option value="">Seleccione un lote</option>
-                    {lotes.map((lote) => (
-                      <option key={lote.ID_Lote} value={lote.ID_Lote}>
-                        Lote {lote.ID_Lote}
-                      </option>
-                    ))}
-                  </CFormSelect>
+            {success && (
+              <CAlert color="success" dismissible onClose={() => setSuccess(null)}>
+                {success}
+              </CAlert>
+            )}
+
+            <CForm onSubmit={handleSubmit}>
+              <CRow>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Descripción de la Obra *</CFormLabel>
+                    <CFormTextarea
+                      name="descripcion"
+                      value={formData.descripcion}
+                      onChange={handleInputChange}
+                      placeholder="Describa detalladamente la obra a realizar"
+                      rows={3}
+                      required
+                    />
+                  </div>
+                </CCol>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Ubicación *</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      name="ubicacion"
+                      value={formData.ubicacion}
+                      onChange={handleInputChange}
+                      placeholder="Dirección completa de la obra"
+                      required
+                    />
+                  </div>
                 </CCol>
               </CRow>
 
-              {selectedLote && (
-                <CRow className="mb-3">
-                  <CCol md={12}>
-                    <CFormLabel htmlFor="ID_Vivienda">Vivienda</CFormLabel>
-                    <CFormSelect
-                      id="ID_Vivienda"
-                      name="ID_Vivienda"
-                      value={formData.ID_Vivienda}
+              <CRow>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Monto Estimado (Bs.) *</CFormLabel>
+                    <CFormInput
+                      type="number"
+                      name="monto"
+                      value={formData.monto}
                       onChange={handleInputChange}
+                      placeholder="0.00"
+                      step="0.01"
                       required
-                    >
-                      <option value="">Seleccione una vivienda</option>
-                      {viviendas.map((vivienda) => (
-                        <option key={vivienda.ID_Vivienda} value={vivienda.ID_Vivienda}>
-                          Vivienda {vivienda.ID_Vivienda}
-                        </option>
-                      ))}
+                    />
+                  </div>
+                </CCol>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Tiempo de Obra</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      name="tiempo_obra"
+                      value={formData.tiempo_obra}
+                      onChange={handleInputChange}
+                      placeholder="ej: 30 días, 2 meses"
+                    />
+                  </div>
+                </CCol>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Tipo de Obra *</CFormLabel>
+                    <CFormSelect name="tipo_obra" value={formData.tipo_obra} onChange={handleInputChange} required>
+                      <option value="">Seleccione el tipo</option>
+                      <option value="Construcción Civil">Construcción Civil</option>
+                      <option value="Ampliación">Ampliación</option>
+                      <option value="Reparación">Reparación</option>
+                      <option value="Remodelación">Remodelación</option>
+                      <option value="Demolición">Demolición</option>
                     </CFormSelect>
-                  </CCol>
-                </CRow>
-              )}
-            </>
-          )}
+                  </div>
+                </CCol>
+              </CRow>
 
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel htmlFor="Fecha">Fecha</CFormLabel>
-              <CFormInput
-                type="date"
-                id="Fecha"
-                name="Fecha"
-                value={formData.Fecha}
-                onChange={handleInputChange}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormLabel htmlFor="Ubicacion">Ubicación</CFormLabel>
-              <CFormInput
-                type="text"
-                id="Ubicacion"
-                name="Ubicacion"
-                value={formData.Ubicacion}
-                onChange={handleInputChange}
-                required
-              />
-            </CCol>
-          </CRow>
+              <CRow>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Área de Construcción (m²)</CFormLabel>
+                    <CFormInput
+                      type="number"
+                      name="area_construccion"
+                      value={formData.area_construccion}
+                      onChange={handleInputChange}
+                      placeholder="0"
+                    />
+                  </div>
+                </CCol>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Número de Pisos</CFormLabel>
+                    <CFormSelect name="numero_pisos" value={formData.numero_pisos} onChange={handleInputChange}>
+                      <option value="1">1 Piso</option>
+                      <option value="2">2 Pisos</option>
+                      <option value="3">3 Pisos</option>
+                      <option value="4">4 Pisos</option>
+                      <option value="5+">5 o más Pisos</option>
+                    </CFormSelect>
+                  </div>
+                </CCol>
+                <CCol md={4}>
+                  <div className="mb-3">
+                    <CFormLabel>Uso Destinado</CFormLabel>
+                    <CFormSelect name="uso_destinado" value={formData.uso_destinado} onChange={handleInputChange}>
+                      <option value="">Seleccione el uso</option>
+                      <option value="Residencial">Residencial</option>
+                      <option value="Comercial">Comercial</option>
+                      <option value="Industrial">Industrial</option>
+                      <option value="Mixto">Mixto</option>
+                    </CFormSelect>
+                  </div>
+                </CCol>
+              </CRow>
 
-          <CRow className="mb-3">
-            <CCol md={12}>
-              <CFormLabel htmlFor="Descripcion">Descripción de la Obra</CFormLabel>
-              <CFormTextarea
-                id="Descripcion"
-                name="Descripcion"
-                rows={3}
-                value={formData.Descripcion}
-                onChange={handleInputChange}
-                required
-              />
-            </CCol>
-          </CRow>
+              <CRow>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Ingeniero Responsable</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      name="ingeniero_responsable"
+                      value={formData.ingeniero_responsable}
+                      onChange={handleInputChange}
+                      placeholder="Nombre del ingeniero a cargo"
+                    />
+                  </div>
+                </CCol>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Contacto de Emergencia</CFormLabel>
+                    <CFormInput
+                      type="tel"
+                      name="contacto_emergencia"
+                      value={formData.contacto_emergencia}
+                      onChange={handleInputChange}
+                      placeholder="0414-1234567"
+                    />
+                  </div>
+                </CCol>
+              </CRow>
 
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel htmlFor="Tiempo_Obra">Tiempo Estimado de Obra</CFormLabel>
-              <CFormInput
-                type="text"
-                id="Tiempo_Obra"
-                name="Tiempo_Obra"
-                value={formData.Tiempo_Obra}
-                onChange={handleInputChange}
-                required
-                placeholder="Ej: 3 meses"
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormLabel htmlFor="Monto">Monto Estimado</CFormLabel>
-              <CFormInput
-                type="number"
-                id="Monto"
-                name="Monto"
-                value={formData.Monto}
-                onChange={handleInputChange}
-                required
-                placeholder="Ingrese el monto en Bs."
-              />
-            </CCol>
-          </CRow>
+              <CRow>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Materiales Principales</CFormLabel>
+                    <CFormTextarea
+                      name="materiales_principales"
+                      value={formData.materiales_principales}
+                      onChange={handleInputChange}
+                      placeholder="ej: Concreto, Bloques, Cabillas, etc."
+                      rows={2}
+                    />
+                  </div>
+                </CCol>
+                <CCol md={6}>
+                  <div className="mb-3">
+                    <CFormLabel>Impacto Ambiental</CFormLabel>
+                    <CFormSelect
+                      name="impacto_ambiental"
+                      value={formData.impacto_ambiental}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Bajo">Bajo</option>
+                      <option value="Medio">Medio</option>
+                      <option value="Alto">Alto</option>
+                    </CFormSelect>
+                  </div>
+                </CCol>
+              </CRow>
 
-          <CRow className="mb-3">
-            <CCol md={12}>
-              <CFormLabel htmlFor="Observacion">Observaciones Adicionales</CFormLabel>
-              <CFormTextarea
-                id="Observacion"
-                name="Observacion"
-                rows={2}
-                value={formData.Observacion}
-                onChange={handleInputChange}
-              />
-            </CCol>
-          </CRow>
+              <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                <CButton
+                  type="button"
+                  color="secondary"
+                  onClick={() => {
+                    setFormData({
+                      descripcion: "",
+                      ubicacion: "",
+                      monto: "",
+                      tiempo_obra: "",
+                      tipo_obra: "",
+                      area_construccion: "",
+                      numero_pisos: "1",
+                      uso_destinado: "",
+                      ingeniero_responsable: "",
+                      materiales_principales: "",
+                      impacto_ambiental: "Bajo",
+                      contacto_emergencia: "",
+                    })
+                  }}
+                >
+                  Limpiar
+                </CButton>
+                <CButton type="submit" color="primary" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <CSpinner size="sm" className="me-2" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Solicitud"
+                  )}
+                </CButton>
+              </div>
+            </CForm>
+          </CCardBody>
+        </CCard>
 
-          <CRow className="mt-4">
-            <CCol md={12}>
-              <CButton type="submit" color="primary" disabled={loading}>
-                {loading ? "Enviando..." : "Enviar Solicitud"}
-              </CButton>
-            </CCol>
-          </CRow>
-        </CForm>
-      </CCardBody>
-    </CCard>
+        {/* Historial de solicitudes */}
+        <CCard>
+          <CCardHeader>
+            <h5>Mis Solicitudes de Obra</h5>
+          </CCardHeader>
+          <CCardBody>
+            {solicitudes.length > 0 ? (
+              <CTable bordered responsive hover>
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell>ID</CTableHeaderCell>
+                    <CTableHeaderCell>Fecha</CTableHeaderCell>
+                    <CTableHeaderCell>Descripción</CTableHeaderCell>
+                    <CTableHeaderCell>Tipo</CTableHeaderCell>
+                    <CTableHeaderCell>Monto</CTableHeaderCell>
+                    <CTableHeaderCell>Estado</CTableHeaderCell>
+                  </CTableRow>
+                </CTableHead>
+                <CTableBody>
+                  {solicitudes.map((solicitud) => (
+                    <CTableRow key={solicitud.ID_Solicitud_de_obra}>
+                      <CTableDataCell>{solicitud.ID_Solicitud_de_obra}</CTableDataCell>
+                      <CTableDataCell>{solicitud.Fecha}</CTableDataCell>
+                      <CTableDataCell>
+                        {solicitud.Descripcion?.substring(0, 50)}
+                        {solicitud.Descripcion?.length > 50 ? "..." : ""}
+                      </CTableDataCell>
+                      <CTableDataCell>{solicitud.Tipo_Obra}</CTableDataCell>
+                      <CTableDataCell>Bs. {(Number.parseFloat(solicitud.Monto) || 0).toLocaleString()}</CTableDataCell>
+                      <CTableDataCell>
+                        <CBadge color={getStatusBadgeColor(solicitud.Estatus)}>{solicitud.Estatus}</CBadge>
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
+                </CTableBody>
+              </CTable>
+            ) : (
+              <div className="text-center py-4">
+                <h6 className="text-muted">No hay solicitudes registradas</h6>
+                <p className="text-muted">Sus solicitudes de obra aparecerán aquí.</p>
+              </div>
+            )}
+          </CCardBody>
+        </CCard>
+      </CCol>
+    </CRow>
   )
 }
 
-export default ConstructionRequestForm
-
+export default SolicitudObra

@@ -1,4 +1,6 @@
-import { useState } from "react"
+"use client"
+
+import { useState, useEffect } from "react"
 import {
   CCard,
   CCardBody,
@@ -13,82 +15,158 @@ import {
   CTableDataCell,
   CBadge,
   CButton,
-  CForm,
-  CFormInput,
-  CFormSelect,
-  CFormLabel,
   CModal,
   CModalHeader,
   CModalTitle,
   CModalBody,
   CModalFooter,
+  CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CAlert,
+  CSpinner,
 } from "@coreui/react"
 import { CChartBar, CChartDoughnut } from "@coreui/react-chartjs"
+import { helpFetch } from "../../../api/helpfetch"
 
 const AdministracionRentasMichelena = () => {
-  const [ingresos, setIngresos] = useState([
-    { id: 1, fecha: "2025-01-15", concepto: "Permiso de construcción", monto: 5000, tipo: "Solicitudes de Obra" },
-    { id: 2, fecha: "2025-01-20", concepto: "Registro de propiedad", monto: 2500, tipo: "Trámites de Propiedades" },
-    { id: 3, fecha: "2025-01-25", concepto: "Actualización catastral", monto: 1000, tipo: "Solicitudes Catastrales" },
-    { id: 4, fecha: "2025-01-28", concepto: "Permiso de remodelación", monto: 3000, tipo: "Solicitudes de Obra" },
-    { id: 5, fecha: "2025-02-01", concepto: "Certificado catastral", monto: 800, tipo: "Solicitudes Catastrales" },
-  ])
+  const [ingresos, setIngresos] = useState([])
+  const [ayudas, setAyudas] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
+  const [formData, setFormData] = useState({
+    concepto: "",
+    monto: "",
+    tipo: "",
+    fecha: "",
+  })
 
-  const [ayudas, setAyudas] = useState([
-    { id: 1, fecha: "2025-01-18", beneficiario: "María González", monto: 1500, concepto: "Ayuda médica" },
-    { id: 2, fecha: "2025-01-22", beneficiario: "Juan Pérez", monto: 2000, concepto: "Mejora de vivienda" },
-    { id: 3, fecha: "2025-01-27", beneficiario: "Ana Rodríguez", monto: 1000, concepto: "Beca estudiantil" },
-  ])
+  const api = helpFetch()
 
-  const [showIngresoModal, setShowIngresoModal] = useState(false)
-  const [showAyudaModal, setShowAyudaModal] = useState(false)
-  const [nuevoIngreso, setNuevoIngreso] = useState({ fecha: "", concepto: "", monto: "", tipo: "Solicitudes de Obra" })
-  const [nuevaAyuda, setNuevaAyuda] = useState({ fecha: "", beneficiario: "", monto: "", concepto: "" })
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const totalIngresos = ingresos.reduce((sum, ingreso) => sum + ingreso.monto, 0)
-  const totalAyudas = ayudas.reduce((sum, ayuda) => sum + ayuda.monto, 0)
-  const balance = totalIngresos - totalAyudas
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-  const handleNuevoIngreso = () => {
-    setIngresos([...ingresos, { ...nuevoIngreso, id: ingresos.length + 1, monto: Number(nuevoIngreso.monto) }])
-    setShowIngresoModal(false)
-    setNuevoIngreso({ fecha: "", concepto: "", monto: "", tipo: "Solicitudes de Obra" })
+      const [ingresosResponse, ayudasResponse] = await Promise.all([api.get("Ingresos"), api.get("Ayudas_Registradas")])
+
+      // Handle ingresos response with proper error checking
+      const safeIngresos = Array.isArray(ingresosResponse) && !ingresosResponse.err ? ingresosResponse : []
+
+      // Handle ayudas response with proper error checking
+      const safeAyudas = Array.isArray(ayudasResponse) && !ayudasResponse.err ? ayudasResponse : []
+
+      setIngresos(safeIngresos)
+      setAyudas(safeAyudas)
+
+      if (ingresosResponse?.err || ayudasResponse?.err) {
+        setError("Algunos datos no pudieron cargarse completamente")
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err)
+      setError("Error al cargar los datos. Verifique que el servidor esté funcionando.")
+      setIngresos([])
+      setAyudas([])
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleNuevaAyuda = () => {
-    setAyudas([...ayudas, { ...nuevaAyuda, id: ayudas.length + 1, monto: Number(nuevaAyuda.monto) }])
-    setShowAyudaModal(false)
-    setNuevaAyuda({ fecha: "", beneficiario: "", monto: "", concepto: "" })
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!formData.concepto || !formData.monto || !formData.tipo) {
+      setError("Por favor complete todos los campos requeridos")
+      return
+    }
+
+    try {
+      const dataToSend = {
+        ...formData,
+        monto: Number.parseFloat(formData.monto),
+        fecha: formData.fecha || new Date().toISOString().split("T")[0],
+      }
+
+      if (editingItem) {
+        await api.put("Ingresos", { body: dataToSend }, editingItem.id)
+      } else {
+        await api.post("Ingresos", { body: dataToSend })
+      }
+
+      setModalVisible(false)
+      setEditingItem(null)
+      setFormData({ concepto: "", monto: "", tipo: "", fecha: "" })
+      fetchData()
+    } catch (err) {
+      console.error("Error saving data:", err)
+      setError("Error al guardar los datos")
+    }
   }
 
-  const ingresosPorTipo = {
-    labels: ["Solicitudes de Obra", "Trámites de Propiedades", "Solicitudes Catastrales", "Otros"],
+  const handleEdit = (item) => {
+    setEditingItem(item)
+    setFormData({
+      concepto: item.concepto || "",
+      monto: item.monto?.toString() || "",
+      tipo: item.tipo || "",
+      fecha: item.fecha || "",
+    })
+    setModalVisible(true)
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm("¿Está seguro de eliminar este registro?")) {
+      try {
+        await api.del("Ingresos", id)
+        fetchData()
+      } catch (err) {
+        console.error("Error deleting data:", err)
+        setError("Error al eliminar el registro")
+      }
+    }
+  }
+
+  // Calculate totals safely
+  const totalIngresos = ingresos.reduce((sum, item) => sum + (Number.parseFloat(item.monto) || 0), 0)
+  const totalAyudas = ayudas.reduce((sum, item) => sum + (Number.parseFloat(item.monto) || 0), 0)
+
+  // Chart data
+  const chartData = {
+    labels: ["Ingresos", "Ayudas Otorgadas"],
     datasets: [
       {
-        data: [
-          ingresos.filter((i) => i.tipo === "Solicitudes de Obra").reduce((sum, i) => sum + i.monto, 0),
-          ingresos.filter((i) => i.tipo === "Trámites de Propiedades").reduce((sum, i) => sum + i.monto, 0),
-          ingresos.filter((i) => i.tipo === "Solicitudes Catastrales").reduce((sum, i) => sum + i.monto, 0),
-          ingresos
-            .filter(
-              (i) => !["Solicitudes de Obra", "Trámites de Propiedades", "Solicitudes Catastrales"].includes(i.tipo),
-            )
-            .reduce((sum, i) => sum + i.monto, 0),
-        ],
-        backgroundColor: ["#321fdb", "#2eb85c", "#f9b115", "#3399ff"],
-      },
-    ],
-  }
-
-  const balanceData = {
-    labels: ["Ingresos", "Ayudas"],
-    datasets: [
-      {
-        label: "Monto en Bs.",
-        backgroundColor: ["#321fdb", "#e55353"],
         data: [totalIngresos, totalAyudas],
+        backgroundColor: ["#36A2EB", "#FF6384"],
+        hoverBackgroundColor: ["#36A2EB", "#FF6384"],
       },
     ],
+  }
+
+  const barChartData = {
+    labels: ingresos.map((item) => item.concepto?.substring(0, 20) + "..." || "Sin concepto"),
+    datasets: [
+      {
+        label: "Montos",
+        backgroundColor: "#f87979",
+        data: ingresos.map((item) => Number.parseFloat(item.monto) || 0),
+      },
+    ],
+  }
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: "400px" }}>
+        <CSpinner color="primary" />
+        <span className="ms-2">Cargando datos...</span>
+      </div>
+    )
   }
 
   return (
@@ -96,219 +174,197 @@ const AdministracionRentasMichelena = () => {
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <h2>Administración de Rentas - Alcaldía de Michelena</h2>
+            <h2>Administración de Rentas - Michelena</h2>
+            <CButton
+              color="primary"
+              onClick={() => {
+                setEditingItem(null)
+                setFormData({ concepto: "", monto: "", tipo: "", fecha: "" })
+                setModalVisible(true)
+              }}
+            >
+              Agregar Ingreso
+            </CButton>
           </CCardHeader>
           <CCardBody>
-            <CRow>
-              <CCol md={4}>
-                <h4>Resumen Financiero</h4>
-                <p>
-                  <strong>Total Ingresos:</strong> Bs. {totalIngresos.toLocaleString()}
-                </p>
-                <p>
-                  <strong>Total Ayudas:</strong> Bs. {totalAyudas.toLocaleString()}
-                </p>
-                <p>
-                  <strong>Balance:</strong>{" "}
-                  <CBadge color={balance >= 0 ? "success" : "danger"}>Bs. {balance.toLocaleString()}</CBadge>
-                </p>
+            {error && (
+              <CAlert color="danger" dismissible onClose={() => setError(null)}>
+                {error}
+              </CAlert>
+            )}
+
+            {/* Resumen de estadísticas */}
+            <CRow className="mb-4">
+              <CCol sm={6} lg={3}>
+                <CCard className="text-white bg-primary">
+                  <CCardBody>
+                    <div className="fs-4 fw-semibold">Bs. {totalIngresos.toLocaleString()}</div>
+                    <div>Total Ingresos</div>
+                  </CCardBody>
+                </CCard>
               </CCol>
-              <CCol md={4}>
-                <h4>Ingresos por Tipo</h4>
-                <CChartDoughnut
-                  data={ingresosPorTipo}
-                  options={{
-                    aspectRatio: 1,
-                    plugins: {
-                      legend: {
-                        position: "bottom",
-                      },
-                    },
-                  }}
-                />
+              <CCol sm={6} lg={3}>
+                <CCard className="text-white bg-success">
+                  <CCardBody>
+                    <div className="fs-4 fw-semibold">{ingresos.length}</div>
+                    <div>Registros de Ingresos</div>
+                  </CCardBody>
+                </CCard>
               </CCol>
-              <CCol md={4}>
-                <h4>Balance de Ingresos y Ayudas</h4>
-                <CChartBar
-                  data={balanceData}
-                  options={{
-                    aspectRatio: 1,
-                    plugins: {
-                      legend: {
-                        display: false,
-                      },
-                    },
-                  }}
-                />
+              <CCol sm={6} lg={3}>
+                <CCard className="text-white bg-warning">
+                  <CCardBody>
+                    <div className="fs-4 fw-semibold">Bs. {totalAyudas.toLocaleString()}</div>
+                    <div>Total Ayudas</div>
+                  </CCardBody>
+                </CCard>
+              </CCol>
+              <CCol sm={6} lg={3}>
+                <CCard className="text-white bg-info">
+                  <CCardBody>
+                    <div className="fs-4 fw-semibold">{ayudas.length}</div>
+                    <div>Ayudas Registradas</div>
+                  </CCardBody>
+                </CCard>
               </CCol>
             </CRow>
 
-            <CRow className="mt-4">
+            {/* Gráficos */}
+            <CRow className="mb-4">
               <CCol md={6}>
-                <h4>Registro de Ingresos</h4>
-                <CButton color="primary" onClick={() => setShowIngresoModal(true)} className="mb-3">
-                  Registrar Nuevo Ingreso
-                </CButton>
-                <CTable bordered responsive>
-                  <CTableHead>
-                    <CTableRow>
-                      <CTableHeaderCell>Fecha</CTableHeaderCell>
-                      <CTableHeaderCell>Concepto</CTableHeaderCell>
-                      <CTableHeaderCell>Monto (Bs.)</CTableHeaderCell>
-                      <CTableHeaderCell>Tipo</CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {ingresos.map((ingreso) => (
-                      <CTableRow key={ingreso.id}>
-                        <CTableDataCell>{ingreso.fecha}</CTableDataCell>
-                        <CTableDataCell>{ingreso.concepto}</CTableDataCell>
-                        <CTableDataCell>{ingreso.monto.toLocaleString()}</CTableDataCell>
-                        <CTableDataCell>{ingreso.tipo}</CTableDataCell>
-                      </CTableRow>
-                    ))}
-                  </CTableBody>
-                </CTable>
+                <CCard>
+                  <CCardHeader>Distribución de Fondos</CCardHeader>
+                  <CCardBody>
+                    <CChartDoughnut data={chartData} />
+                  </CCardBody>
+                </CCard>
               </CCol>
               <CCol md={6}>
-                <h4>Registro de Ayudas</h4>
-                <CButton color="success" onClick={() => setShowAyudaModal(true)} className="mb-3">
-                  Registrar Nueva Ayuda
-                </CButton>
-                <CTable bordered responsive>
-                  <CTableHead>
-                    <CTableRow>
-                      <CTableHeaderCell>Fecha</CTableHeaderCell>
-                      <CTableHeaderCell>Beneficiario</CTableHeaderCell>
-                      <CTableHeaderCell>Monto (Bs.)</CTableHeaderCell>
-                      <CTableHeaderCell>Concepto</CTableHeaderCell>
-                    </CTableRow>
-                  </CTableHead>
-                  <CTableBody>
-                    {ayudas.map((ayuda) => (
-                      <CTableRow key={ayuda.id}>
-                        <CTableDataCell>{ayuda.fecha}</CTableDataCell>
-                        <CTableDataCell>{ayuda.beneficiario}</CTableDataCell>
-                        <CTableDataCell>{ayuda.monto.toLocaleString()}</CTableDataCell>
-                        <CTableDataCell>{ayuda.concepto}</CTableDataCell>
-                      </CTableRow>
-                    ))}
-                  </CTableBody>
-                </CTable>
+                <CCard>
+                  <CCardHeader>Ingresos por Concepto</CCardHeader>
+                  <CCardBody>
+                    <CChartBar data={barChartData} />
+                  </CCardBody>
+                </CCard>
               </CCol>
             </CRow>
+
+            {/* Tabla de ingresos */}
+            <CCard>
+              <CCardHeader>
+                <h5>Registro de Ingresos</h5>
+              </CCardHeader>
+              <CCardBody>
+                {ingresos.length > 0 ? (
+                  <CTable bordered responsive hover>
+                    <CTableHead>
+                      <CTableRow>
+                        <CTableHeaderCell>Fecha</CTableHeaderCell>
+                        <CTableHeaderCell>Concepto</CTableHeaderCell>
+                        <CTableHeaderCell>Tipo</CTableHeaderCell>
+                        <CTableHeaderCell>Monto</CTableHeaderCell>
+                        <CTableHeaderCell>Acciones</CTableHeaderCell>
+                      </CTableRow>
+                    </CTableHead>
+                    <CTableBody>
+                      {ingresos.map((ingreso) => (
+                        <CTableRow key={ingreso.id}>
+                          <CTableDataCell>{ingreso.fecha || "N/A"}</CTableDataCell>
+                          <CTableDataCell>{ingreso.concepto || "Sin concepto"}</CTableDataCell>
+                          <CTableDataCell>
+                            <CBadge color="info">{ingreso.tipo || "Sin tipo"}</CBadge>
+                          </CTableDataCell>
+                          <CTableDataCell>
+                            Bs. {(Number.parseFloat(ingreso.monto) || 0).toLocaleString()}
+                          </CTableDataCell>
+                          <CTableDataCell>
+                            <CButton color="warning" size="sm" className="me-2" onClick={() => handleEdit(ingreso)}>
+                              Editar
+                            </CButton>
+                            <CButton color="danger" size="sm" onClick={() => handleDelete(ingreso.id)}>
+                              Eliminar
+                            </CButton>
+                          </CTableDataCell>
+                        </CTableRow>
+                      ))}
+                    </CTableBody>
+                  </CTable>
+                ) : (
+                  <div className="text-center py-4">
+                    <h5 className="text-muted">No hay ingresos registrados</h5>
+                    <p className="text-muted">Agregue el primer registro de ingreso.</p>
+                  </div>
+                )}
+              </CCardBody>
+            </CCard>
           </CCardBody>
         </CCard>
       </CCol>
 
-      {/* Modal para nuevo ingreso */}
-      <CModal visible={showIngresoModal} onClose={() => setShowIngresoModal(false)}>
+      {/* Modal para agregar/editar */}
+      <CModal visible={modalVisible} onClose={() => setModalVisible(false)}>
         <CModalHeader>
-          <CModalTitle>Registrar Nuevo Ingreso</CModalTitle>
+          <CModalTitle>{editingItem ? "Editar Ingreso" : "Agregar Ingreso"}</CModalTitle>
         </CModalHeader>
-        <CModalBody>
-          <CForm>
+        <CForm onSubmit={handleSubmit}>
+          <CModalBody>
             <div className="mb-3">
-              <CFormLabel>Fecha</CFormLabel>
-              <CFormInput
-                type="date"
-                value={nuevoIngreso.fecha}
-                onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, fecha: e.target.value })}
-              />
-            </div>
-            <div className="mb-3">
-              <CFormLabel>Concepto</CFormLabel>
+              <CFormLabel>Concepto *</CFormLabel>
               <CFormInput
                 type="text"
-                value={nuevoIngreso.concepto}
-                onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, concepto: e.target.value })}
+                value={formData.concepto}
+                onChange={(e) => setFormData({ ...formData, concepto: e.target.value })}
+                placeholder="Descripción del ingreso"
+                required
               />
             </div>
             <div className="mb-3">
-              <CFormLabel>Monto (Bs.)</CFormLabel>
+              <CFormLabel>Monto *</CFormLabel>
               <CFormInput
                 type="number"
-                value={nuevoIngreso.monto}
-                onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, monto: e.target.value })}
+                step="0.01"
+                value={formData.monto}
+                onChange={(e) => setFormData({ ...formData, monto: e.target.value })}
+                placeholder="0.00"
+                required
               />
             </div>
             <div className="mb-3">
-              <CFormLabel>Tipo</CFormLabel>
+              <CFormLabel>Tipo *</CFormLabel>
               <CFormSelect
-                value={nuevoIngreso.tipo}
-                onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, tipo: e.target.value })}
+                value={formData.tipo}
+                onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                required
               >
+                <option value="">Seleccione un tipo</option>
                 <option value="Solicitudes de Obra">Solicitudes de Obra</option>
                 <option value="Trámites de Propiedades">Trámites de Propiedades</option>
                 <option value="Solicitudes Catastrales">Solicitudes Catastrales</option>
+                <option value="Multas">Multas</option>
                 <option value="Otros">Otros</option>
               </CFormSelect>
             </div>
-          </CForm>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={() => setShowIngresoModal(false)}>
-            Cancelar
-          </CButton>
-          <CButton color="primary" onClick={handleNuevoIngreso}>
-            Guardar Ingreso
-          </CButton>
-        </CModalFooter>
-      </CModal>
-
-      {/* Modal para nueva ayuda */}
-      <CModal visible={showAyudaModal} onClose={() => setShowAyudaModal(false)}>
-        <CModalHeader>
-          <CModalTitle>Registrar Nueva Ayuda</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CForm>
             <div className="mb-3">
               <CFormLabel>Fecha</CFormLabel>
               <CFormInput
                 type="date"
-                value={nuevaAyuda.fecha}
-                onChange={(e) => setNuevaAyuda({ ...nuevaAyuda, fecha: e.target.value })}
+                value={formData.fecha}
+                onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
               />
             </div>
-            <div className="mb-3">
-              <CFormLabel>Beneficiario</CFormLabel>
-              <CFormInput
-                type="text"
-                value={nuevaAyuda.beneficiario}
-                onChange={(e) => setNuevaAyuda({ ...nuevaAyuda, beneficiario: e.target.value })}
-              />
-            </div>
-            <div className="mb-3">
-              <CFormLabel>Monto (Bs.)</CFormLabel>
-              <CFormInput
-                type="number"
-                value={nuevaAyuda.monto}
-                onChange={(e) => setNuevaAyuda({ ...nuevaAyuda, monto: e.target.value })}
-              />
-            </div>
-            <div className="mb-3">
-              <CFormLabel>Concepto</CFormLabel>
-              <CFormInput
-                type="text"
-                value={nuevaAyuda.concepto}
-                onChange={(e) => setNuevaAyuda({ ...nuevaAyuda, concepto: e.target.value })}
-              />
-            </div>
-          </CForm>
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={() => setShowAyudaModal(false)}>
-            Cancelar
-          </CButton>
-          <CButton color="success" onClick={handleNuevaAyuda}>
-            Guardar Ayuda
-          </CButton>
-        </CModalFooter>
+          </CModalBody>
+          <CModalFooter>
+            <CButton color="secondary" onClick={() => setModalVisible(false)}>
+              Cancelar
+            </CButton>
+            <CButton color="primary" type="submit">
+              {editingItem ? "Actualizar" : "Guardar"}
+            </CButton>
+          </CModalFooter>
+        </CForm>
       </CModal>
     </CRow>
   )
 }
 
 export default AdministracionRentasMichelena
-
